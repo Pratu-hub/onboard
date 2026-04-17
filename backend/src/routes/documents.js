@@ -125,6 +125,42 @@ router.post('/confirm-upload', authenticate, async (req, res) => {
 });
 
 /**
+ * GET /api/documents/:id/view-url
+ * Generates a temporary signed read URL for viewing an uploaded document.
+ */
+router.get('/:id/view-url', authenticate, async (req, res) => {
+  const docId = parseInt(req.params.id);
+
+  try {
+    const pool = await getPool();
+    const result = await pool.request()
+      .input('id', sql.Int, docId)
+      .query('SELECT * FROM documents WHERE id = @id');
+
+    if (result.recordset.length === 0) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+
+    const doc = result.recordset[0];
+
+    // Only allow the owner or HR roles to view
+    if (doc.user_id !== req.user.id && !['HR_ADMIN', 'HR_REVIEWER'].includes(req.user.role)) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    if (!doc.filename) {
+      return res.status(400).json({ error: 'No file uploaded for this document' });
+    }
+
+    const viewUrl = await generateReadSasUrl(doc.filename, 60);
+    res.json({ viewUrl, originalName: doc.original_name });
+  } catch (err) {
+    console.error('View URL generation error:', err.message);
+    res.status(500).json({ error: 'Failed to generate view URL' });
+  }
+});
+
+/**
  * PATCH /api/documents/:id/status
  * HR roles only — update document status (verify / reject).
  */

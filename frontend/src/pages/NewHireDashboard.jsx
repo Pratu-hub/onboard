@@ -7,6 +7,7 @@ const NewHireDashboard = () => {
     const [documents, setDocuments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [uploadingDocType, setUploadingDocType] = useState(null);
+    const [uploadProgress, setUploadProgress] = useState({}); // { [docType]: percentage }
     const fileInputRef = useRef(null);
 
     useEffect(() => {
@@ -41,21 +42,50 @@ const NewHireDashboard = () => {
         const file = event.target.files[0];
         if (!file || !uploadingDocType) return;
 
-        try {
-            setDocuments(prev => prev.map(d =>
-                d.doc_type === uploadingDocType ? { ...d, status: 'ai_processing' } : d
-            ));
+        const currentDocType = uploadingDocType;
 
-            const sasData = await api(`/documents/generate-sas?filename=${encodeURIComponent(file.name)}&doc_type=${uploadingDocType}&content_type=${encodeURIComponent(file.type)}`);
+        try {
+            // Set status to uploading and init progress at 0
+            setDocuments(prev => prev.map(d =>
+                d.doc_type === currentDocType ? { ...d, status: 'uploading' } : d
+            ));
+            setUploadProgress(prev => ({ ...prev, [currentDocType]: 0 }));
+
+            // Step 1: Get SAS URL
+            const sasData = await api(`/documents/generate-sas?filename=${encodeURIComponent(file.name)}&doc_type=${currentDocType}&content_type=${encodeURIComponent(file.type)}`);
             const { uploadUrl, blobName, docType } = sasData;
 
-            const uploadResponse = await fetch(uploadUrl, {
-                method: 'PUT',
-                headers: { 'Content-Type': file.type },
-                body: file,
+            // Step 2: Upload with real progress tracking via XMLHttpRequest
+            await new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+
+                xhr.upload.addEventListener('progress', (e) => {
+                    if (e.lengthComputable) {
+                        const percent = Math.round((e.loaded / e.total) * 100);
+                        setUploadProgress(prev => ({ ...prev, [currentDocType]: percent }));
+                    }
+                });
+
+                xhr.addEventListener('load', () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        resolve();
+                    } else {
+                        reject(new Error(`Upload failed with status ${xhr.status}`));
+                    }
+                });
+
+                xhr.addEventListener('error', () => reject(new Error('Upload to storage failed')));
+                xhr.addEventListener('abort', () => reject(new Error('Upload aborted')));
+
+                xhr.open('PUT', uploadUrl);
+                xhr.setRequestHeader('Content-Type', file.type);
+                xhr.send(file);
             });
 
-            if (!uploadResponse.ok) throw new Error('Upload to storage failed');
+            // Step 3: Confirm upload
+            setDocuments(prev => prev.map(d =>
+                d.doc_type === currentDocType ? { ...d, status: 'ai_processing' } : d
+            ));
 
             await api('/documents/confirm-upload', {
                 method: 'POST',
@@ -63,14 +93,38 @@ const NewHireDashboard = () => {
                 body: JSON.stringify({ blobName, originalName: file.name, docType }),
             });
 
+            // Step 4: Refresh documents to get the latest state from backend
             await fetchDocuments();
         } catch (error) {
             console.error('Upload failed:', error);
             alert('Upload failed: ' + error.message);
             await fetchDocuments();
         } finally {
+            // Cleanup progress after a short delay so user sees 100%
+            setTimeout(() => {
+                setUploadProgress(prev => {
+                    const next = { ...prev };
+                    delete next[currentDocType];
+                    return next;
+                });
+            }, 500);
             event.target.value = '';
             setUploadingDocType(null);
+        }
+    };
+
+    const handleViewDocument = async (doc) => {
+        if (!doc.id || typeof doc.id === 'string') {
+            alert('No file uploaded yet.');
+            return;
+        }
+
+        try {
+            const data = await api(`/documents/${doc.id}/view-url`);
+            window.open(data.viewUrl, '_blank');
+        } catch (error) {
+            console.error('Failed to get view URL:', error);
+            alert('Failed to open document: ' + error.message);
         }
     };
 
@@ -88,7 +142,7 @@ const NewHireDashboard = () => {
     if (loading) return <div className="p-8 text-center text-on-surface">Initializing Compliance Dashboard...</div>;
 
     const verifiedCount = documents.filter(d => d.status === 'verified').length;
-    const processingCount = documents.filter(d => d.status === 'ai_processing' || d.status === 'uploaded').length;
+    const processingCount = documents.filter(d => ['ai_processing', 'uploaded', 'uploading'].includes(d.status)).length;
     const pendingCount = documents.filter(d => d.status === 'pending').length;
     const progressPercent = Math.round((verifiedCount / 5) * 100);
 
@@ -182,12 +236,15 @@ const NewHireDashboard = () => {
                             <tbody className="divide-y divide-outline-variant/5">
                                 {documents.map((doc) => {
                                     const meta = getDocMeta(doc.doc_type);
+                                    const isUploading = doc.status === 'uploading';
                                     const isProcessing = doc.status === 'ai_processing' || doc.status === 'uploaded';
                                     const isVerified = doc.status === 'verified';
                                     const isPending = doc.status === 'pending';
+                                    const progress = uploadProgress[doc.doc_type] || 0;
+                                    const hasFile = doc.filename && typeof doc.id === 'number';
 
                                     return (
-                                        <tr key={doc.id} className={`hover:bg-surface-container-low transition-colors ${isProcessing ? 'bg-primary/5' : ''}`}>
+                                        <tr key={doc.id} className={`hover:bg-surface-container-low transition-colors ${isUploading || isProcessing ? 'bg-primary/5' : ''}`}>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
                                                     <span className={`material-symbols-outlined ${isPending ? 'text-on-surface-variant' : 'text-primary'}`}>{meta.icon}</span>
@@ -196,10 +253,16 @@ const NewHireDashboard = () => {
                                             </td>
                                             <td className="px-6 py-4">
                                                 {isVerified && <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-secondary-container text-on-secondary-container">Verified</span>}
+                                                {isUploading && (
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-primary-container text-on-primary-container gap-1 w-fit">
+                                                        <span className="material-symbols-outlined text-[10px] animate-spin">refresh</span>
+                                                        Uploading {progress}%
+                                                    </span>
+                                                )}
                                                 {isProcessing && (
                                                     <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-primary-container text-on-primary-container gap-1 w-fit">
                                                         <span className="material-symbols-outlined text-[10px] animate-spin">refresh</span>
-                                                        Processing 65%
+                                                        Processing
                                                     </span>
                                                 )}
                                                 {isPending && <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-surface-variant text-on-surface-variant">Pending</span>}
@@ -212,12 +275,21 @@ const NewHireDashboard = () => {
                                                         <span className="text-[10px] text-on-surface-variant">Uploaded recently</span>
                                                     </div>
                                                 )}
-                                                {isProcessing && (
+                                                {isUploading && (
                                                     <div className="space-y-1">
                                                         <div className="w-32 bg-surface-container-high h-1.5 rounded-full overflow-hidden">
-                                                            <div className="bg-gradient-to-r from-[#005faa] to-[#0078d4] h-full w-[65%]"></div>
+                                                            <div
+                                                                className="bg-gradient-to-r from-[#005faa] to-[#0078d4] h-full rounded-full transition-all duration-300"
+                                                                style={{ width: `${progress}%` }}
+                                                            ></div>
                                                         </div>
-                                                        <span className="text-[10px] text-primary font-bold">Encrypting transfer...</span>
+                                                        <span className="text-[10px] text-primary font-bold">Uploading file...</span>
+                                                    </div>
+                                                )}
+                                                {isProcessing && (
+                                                    <div className="flex flex-col">
+                                                        <span className="text-xs font-bold text-on-surface">{doc.original_name || doc.filename}</span>
+                                                        <span className="text-[10px] text-primary font-bold">Awaiting verification</span>
                                                     </div>
                                                 )}
                                                 {isPending && <span className="text-xs text-on-surface-variant italic">No file selected</span>}
@@ -226,11 +298,18 @@ const NewHireDashboard = () => {
                                                 <div className="flex justify-end gap-2">
                                                     {isVerified ? (
                                                         <>
-                                                            <button className="text-primary hover:bg-primary/5 p-2 rounded transition-colors" title="View Document"><span className="material-symbols-outlined text-lg">visibility</span></button>
+                                                            <button className="text-primary hover:bg-primary/5 p-2 rounded transition-colors" title="View Document" onClick={() => handleViewDocument(doc)}><span className="material-symbols-outlined text-lg">visibility</span></button>
                                                             <button className="text-on-surface-variant hover:bg-surface-container-high p-2 rounded transition-colors" title="Replace" onClick={() => handleUploadClick(doc.doc_type)}><span className="material-symbols-outlined text-lg">sync</span></button>
                                                         </>
+                                                    ) : isUploading ? (
+                                                        <span className="text-primary text-xs font-bold uppercase tracking-widest px-3 py-1">{progress}%</span>
                                                     ) : isProcessing ? (
-                                                        <button className="text-error hover:bg-error/5 p-2 rounded transition-colors" title="Cancel Upload"><span className="material-symbols-outlined text-lg">cancel</span></button>
+                                                        <>
+                                                            {hasFile && (
+                                                                <button className="text-primary hover:bg-primary/5 p-2 rounded transition-colors" title="View Document" onClick={() => handleViewDocument(doc)}><span className="material-symbols-outlined text-lg">visibility</span></button>
+                                                            )}
+                                                            <button className="text-on-surface-variant hover:bg-surface-container-high p-2 rounded transition-colors" title="Re-upload" onClick={() => handleUploadClick(doc.doc_type)}><span className="material-symbols-outlined text-lg">sync</span></button>
+                                                        </>
                                                     ) : (
                                                         <button className="text-primary text-xs font-bold uppercase tracking-widest hover:underline px-3 py-1" onClick={() => handleUploadClick(doc.doc_type)}>Upload File</button>
                                                     )}
