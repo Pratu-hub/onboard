@@ -14,6 +14,20 @@ const NewHireDashboard = () => {
         fetchDocuments();
     }, []);
 
+    // Auto-poll when documents are being processed by AI
+    useEffect(() => {
+        const hasProcessing = documents.some(d => 
+            (['ai_processing', 'uploaded'].includes(d.status) || (d.status === 'flagged' && !d.ai_validation_status)) && d.filename
+        );
+        if (!hasProcessing) return;
+
+        const interval = setInterval(() => {
+            fetchDocuments();
+        }, 5000); // Poll every 5 seconds
+
+        return () => clearInterval(interval);
+    }, [documents]);
+
     const fetchDocuments = async () => {
         try {
             const data = await api('/documents');
@@ -188,6 +202,7 @@ const NewHireDashboard = () => {
 
     const verifiedCount = documents.filter(d => d.status === 'verified').length;
     const processingCount = documents.filter(d => ['ai_processing', 'uploaded', 'uploading'].includes(d.status)).length;
+    const flaggedCount = documents.filter(d => d.status === 'flagged').length;
     const pendingCount = documents.filter(d => d.status === 'pending').length;
     const progressPercent = Math.round((verifiedCount / 5) * 100);
 
@@ -221,6 +236,9 @@ const NewHireDashboard = () => {
                                 </div>
                                 <div className="flex items-center gap-1.5 text-primary">
                                     <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span> {processingCount} In Progress
+                                </div>
+                                <div className="flex items-center gap-1.5 text-error">
+                                    <span className="w-2 h-2 rounded-full bg-error"></span> {flaggedCount} Flagged
                                 </div>
                                 <div className="flex items-center gap-1.5 text-outline">
                                     <span className="w-2 h-2 rounded-full bg-outline"></span> {pendingCount} Pending
@@ -310,6 +328,18 @@ const NewHireDashboard = () => {
                                                         Processing
                                                     </span>
                                                 )}
+                                                {doc.status === 'flagged' && (
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-error-container text-on-error-container gap-1 w-fit" title={doc.ai_summary}>
+                                                        <span className="material-symbols-outlined text-[10px]">warning</span>
+                                                        Flagged
+                                                    </span>
+                                                )}
+                                                {doc.status === 'rejected' && (
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-error text-white gap-1 w-fit" title={doc.ai_summary}>
+                                                        <span className="material-symbols-outlined text-[10px]">error</span>
+                                                        Re-upload Needed
+                                                    </span>
+                                                )}
                                                 {isPending && <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-surface-variant text-on-surface-variant">Pending</span>}
                                             </td>
                                             <td className="px-6 py-4 text-xs text-on-surface-variant font-medium">{meta.formats}</td>
@@ -335,6 +365,18 @@ const NewHireDashboard = () => {
                                                     <div className="flex flex-col">
                                                         <span className="text-xs font-bold text-on-surface">{doc.original_name || doc.filename}</span>
                                                         <span className="text-[10px] text-primary font-bold">Awaiting verification</span>
+                                                    </div>
+                                                )}
+                                                {doc.status === 'flagged' && (
+                                                    <div className="flex flex-col">
+                                                        <span className="text-xs font-bold text-on-surface">{doc.original_name || doc.filename}</span>
+                                                        <span className="text-[10px] text-error font-bold">{doc.ai_summary || 'Needs review'}</span>
+                                                    </div>
+                                                )}
+                                                {doc.status === 'rejected' && (
+                                                    <div className="flex flex-col">
+                                                        <span className="text-xs font-bold text-on-surface">{doc.original_name || doc.filename}</span>
+                                                        <span className="text-[10px] text-error font-bold">File unreadable. Please re-upload.</span>
                                                     </div>
                                                 )}
                                                 {isPending && <span className="text-xs text-on-surface-variant italic">No file selected</span>}

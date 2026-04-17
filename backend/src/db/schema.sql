@@ -24,9 +24,12 @@ CREATE TABLE documents (
     filename NVARCHAR(500),
     original_name NVARCHAR(500),
     status NVARCHAR(50) NOT NULL DEFAULT 'pending' 
-        CHECK (status IN ('pending', 'uploaded', 'ai_processing', 'verified', 'rejected')),
+        CHECK (status IN ('pending', 'uploaded', 'ai_processing', 'verified', 'rejected', 'flagged')),
+    ai_validation_status NVARCHAR(50),
+    ai_summary NVARCHAR(MAX),
     reviewer_notes NVARCHAR(MAX),
     uploaded_at DATETIME2 DEFAULT GETDATE(),
+    validated_at DATETIME2,
     reviewed_at DATETIME2,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );

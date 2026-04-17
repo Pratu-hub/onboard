@@ -85,9 +85,10 @@ const HrReviewerDashboard = () => {
                       <div className="flex items-center gap-2">
                         {doc.status === 'verified' && <span className="w-2 h-2 rounded-full bg-green-500"></span>}
                         {doc.status === 'rejected' && <span className="w-2 h-2 rounded-full bg-red-500"></span>}
+                        {doc.status === 'flagged' && <span className="w-2 h-2 rounded-full bg-purple-500"></span>}
                         {doc.status === 'uploaded' && <span className="w-2 h-2 rounded-full bg-blue-500"></span>}
                         {(doc.status === 'pending' || doc.status === 'ai_processing') && <span className="w-2 h-2 rounded-full bg-yellow-500"></span>}
-                        <span className="capitalize">{doc.status.replace('_', ' ')}</span>
+                        <span className="capitalize" title={doc.ai_summary}>{doc.status.replace('_', ' ')}</span>
                       </div>
                     </td>
                     <td className="py-4 px-6 text-right">

@@ -11,6 +11,7 @@ const {
   generateUploadSasUrl, 
   generateReadSasUrl 
 } = require('../utils/firebaseStorage');
+const { processDocumentWithAI } = require('../utils/aiProcessor');
 
 // Note: Local multer setup is now optional/deprecated but kept for fallback
 const uploadDir = process.env.UPLOAD_DIR || './uploads';
@@ -117,7 +118,41 @@ router.post('/confirm-upload', authenticate, async (req, res) => {
         `);
     }
 
-    res.status(200).json({ document: result.recordset[0] });
+    const document = result.recordset[0];
+    res.status(200).json({ document });
+
+    // Trigger AI processing in background (fire-and-forget)
+    setImmediate(async () => {
+      console.log(`[AI-TRIGGER] Starting background AI for doc ${document.id} (${document.doc_type})`);
+      try {
+        // Get a fresh pool reference for the background task
+        const bgPool = await getPool();
+        
+        // Update status to ai_processing
+        await bgPool.request()
+          .input('doc_id', sql.Int, document.id)
+          .query("UPDATE documents SET status = 'ai_processing' WHERE id = @doc_id");
+        console.log(`[AI-TRIGGER] Status set to ai_processing for doc ${document.id}`);
+
+        // Generate a signed read URL for the AI service
+        const viewUrl = await generateReadSasUrl(document.filename, 30);
+        console.log(`[AI-TRIGGER] Generated read URL for doc ${document.id}`);
+
+        // Run the AI analysis
+        await processDocumentWithAI(document.id, viewUrl, document.doc_type);
+        console.log(`[AI-TRIGGER] AI processing complete for doc ${document.id}`);
+      } catch (aiErr) {
+        console.error(`[AI-TRIGGER] Background AI failed for doc ${document.id}:`, aiErr.message);
+        console.error(`[AI-TRIGGER] Stack:`, aiErr.stack);
+        // Revert status so it doesn't stay stuck on ai_processing
+        try {
+          const bgPool = await getPool();
+          await bgPool.request()
+            .input('doc_id', sql.Int, document.id)
+            .query("UPDATE documents SET status = 'uploaded' WHERE id = @doc_id");
+        } catch (_) { /* ignore cleanup error */ }
+      }
+    });
   } catch (err) {
     console.error('Confirm upload error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
@@ -172,7 +207,7 @@ router.patch('/:id/status', authenticate, requireRole('HR_ADMIN', 'HR_REVIEWER')
   const docId = parseInt(req.params.id);
   const { status, reviewer_notes } = req.body;
 
-  const validStatuses = ['pending', 'uploaded', 'ai_processing', 'verified', 'rejected'];
+  const validStatuses = ['pending', 'uploaded', 'ai_processing', 'verified', 'rejected', 'flagged'];
   if (!validStatuses.includes(status)) {
     return res.status(400).json({ error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` });
   }
@@ -198,6 +233,52 @@ router.patch('/:id/status', authenticate, requireRole('HR_ADMIN', 'HR_REVIEWER')
   } catch (err) {
     console.error('Update document status error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * POST /api/documents/:id/verify
+ * HR roles only — manually trigger AI verification for a specific document.
+ */
+router.post('/:id/verify', authenticate, requireRole('HR_ADMIN', 'HR_REVIEWER'), async (req, res) => {
+  const docId = parseInt(req.params.id);
+
+  try {
+    const pool = await getPool();
+    const result = await pool.request()
+      .input('id', sql.Int, docId)
+      .query('SELECT * FROM documents WHERE id = @id');
+
+    if (result.recordset.length === 0) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+
+    const doc = result.recordset[0];
+    if (!doc.filename) {
+      return res.status(400).json({ error: 'No file uploaded for this document' });
+    }
+
+    // Set status to ai_processing
+    await pool.request()
+      .input('id', sql.Int, docId)
+      .query("UPDATE documents SET status = 'ai_processing' WHERE id = @id");
+
+    // Generate a read URL and run AI analysis
+    const viewUrl = await generateReadSasUrl(doc.filename, 30);
+    const aiResult = await processDocumentWithAI(docId, viewUrl, doc.doc_type);
+
+    // Fetch the updated record
+    const updated = await pool.request()
+      .input('id', sql.Int, docId)
+      .query('SELECT * FROM documents WHERE id = @id');
+
+    res.json({
+      document: updated.recordset[0],
+      aiResult
+    });
+  } catch (err) {
+    console.error('Manual verify error:', err.message);
+    res.status(500).json({ error: 'AI verification failed' });
   }
 });
 
