@@ -22,8 +22,7 @@ app.use(cors({
     'http://localhost:5173', 
     'http://localhost:5174', 
     'http://localhost:5175',
-    'https://blue-moss-09187bb00.2.azurestaticapps.net',
-    'https://happy-dune-073f9d400.7.azurestaticapps.net'
+    'https://delightful-bush-033944810.7.azurestaticapps.net'
   ],
   credentials: true,
 }));
