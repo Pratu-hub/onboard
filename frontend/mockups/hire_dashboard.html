@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>New Hire Dashboard | OnboardIQ</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#005faa",
+                        "error": "#ba1a1a",
+                        "primary-container": "#0078d4",
+                        "on-primary": "#ffffff",
+                        "background": "#f7f9fb",
+                        "tertiary-container": "#bc5b00",
+                        "surface-variant": "#e0e3e5",
+                        "on-surface-variant": "#404752",
+                        "on-primary-fixed": "#001c39",
+                        "secondary": "#515f74",
+                        "on-primary-fixed-variant": "#004883",
+                        "on-tertiary-fixed": "#311300",
+                        "error-container": "#ffdad6",
+                        "on-background": "#191c1e",
+                        "on-error": "#ffffff",
+                        "secondary-container": "#d5e3fc",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "primary-fixed": "#d3e3ff",
+                        "surface-tint": "#0060ab",
+                        "primary-fixed-dim": "#a3c9ff",
+                        "on-secondary-fixed-variant": "#3a485b",
+                        "on-tertiary-container": "#ffffff",
+                        "surface-container-low": "#f2f4f6",
+                        "outline-variant": "#c0c7d4",
+                        "outline": "#717783",
+                        "surface-dim": "#d8dadc",
+                        "inverse-surface": "#2d3133",
+                        "surface-container-high": "#e6e8ea",
+                        "on-tertiary": "#ffffff",
+                        "surface-container": "#eceef0",
+                        "on-primary-container": "#ffffff",
+                        "secondary-fixed-dim": "#b9c7df",
+                        "surface-bright": "#f7f9fb",
+                        "inverse-primary": "#a3c9ff",
+                        "surface": "#f7f9fb",
+                        "tertiary-fixed": "#ffdbc8",
+                        "on-error-container": "#93000a",
+                        "on-secondary-fixed": "#0d1c2e",
+                        "tertiary": "#974700",
+                        "surface-container-highest": "#e0e3e5",
+                        "tertiary-fixed-dim": "#ffb689",
+                        "on-surface": "#191c1e",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-tertiary-fixed-variant": "#743500",
+                        "on-secondary-container": "#57657a",
+                        "secondary-fixed": "#d5e3fc"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+        }
+        .kinetic-lift:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 30px -10px rgba(25, 28, 30, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen">
+<!-- TopNavBar Cluster -->
+<header class="fixed top-0 w-full flex justify-between items-center px-6 h-16 bg-slate-50/85 backdrop-blur-xl z-50 shadow-sm shadow-slate-200/50">
+<div class="flex items-center gap-8">
+<span class="text-xl font-medium tracking-tight text-slate-900">Sovereign Cloud</span>
+<div class="hidden md:flex gap-6 h-full items-center">
+<a class="text-blue-700 border-b-2 border-blue-600 font-sans antialiased text-sm py-5" href="#">Dashboard</a>
+<a class="text-slate-600 font-sans antialiased text-sm hover:bg-slate-200/50 transition-all px-3 py-1 rounded" href="#">Resources</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative group">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer p-2 rounded-full hover:bg-slate-200/50">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full"></span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer p-2 rounded-full hover:bg-slate-200/50">swap_horiz</span>
+<img alt="User profile" class="w-8 h-8 rounded-full border border-outline-variant" data-alt="Close up portrait of a professional man in a light blue shirt with a friendly expression, clean corporate background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqhQziISOccT7KKjK6dSzJShVdVDNE3vZJiaEltuGj5JtYG1umj4CQwd5JRMKCWUkHmm4REPPFHrtOexTARFkGF4nqICwfZ_j2yRPlJwNr0ivd1asxM8aQnbAaGA6kmwvrtJJPJ49D0ALzFyx4_sCqlML8lIMrjLTG8AB3goRDJtuGWjiwNFsbzC0uLLP1AY-Lq7tIL5Eugo05ZERCH5wrxrzIbpDG9z3srlzn-9NeyrW4tDpIpkqIGOr8sVBl_uzZoUXp7npYiw"/>
+</div>
+</header>
+<!-- SideNavBar Cluster -->
+<aside class="fixed left-0 top-16 h-[calc(100vh-64px)] w-64 bg-slate-100 flex flex-col p-4 gap-2 border-r border-slate-200">
+<div class="mb-6 px-2">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-sm" data-weight="fill" style="font-variation-settings: 'FILL' 1;">cloud</span>
+</div>
+<div>
+<h2 class="text-lg font-bold text-slate-900 leading-tight">OnboardIQ</h2>
+<p class="text-[10px] uppercase tracking-wider text-on-surface-variant font-semibold">Enterprise Portal</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 flex flex-col gap-1">
+<!-- Active: New Hire -->
+<a class="bg-white text-blue-700 shadow-sm rounded-md flex items-center gap-3 px-3 py-2.5 font-sans text-sm font-medium transition-all duration-200 translate-x-1" href="#">
+<span class="material-symbols-outlined">person_add</span>
+                New Hire
+            </a>
+<a class="text-slate-500 hover:text-slate-900 hover:bg-slate-200 flex items-center gap-3 px-3 py-2.5 font-sans text-sm font-medium transition-all duration-200" href="#">
+<span class="material-symbols-outlined">fact_check</span>
+                HR Reviewer
+            </a>
+<a class="text-slate-500 hover:text-slate-900 hover:bg-slate-200 flex items-center gap-3 px-3 py-2.5 font-sans text-sm font-medium transition-all duration-200" href="#">
+<span class="material-symbols-outlined">admin_panel_settings</span>
+                HR Admin
+            </a>
+<a class="text-slate-500 hover:text-slate-900 hover:bg-slate-200 flex items-center gap-3 px-3 py-2.5 font-sans text-sm font-medium transition-all duration-200" href="#">
+<span class="material-symbols-outlined">terminal</span>
+                IT Admin
+            </a>
+</nav>
+<div class="mt-auto flex flex-col gap-1 border-t border-slate-200 pt-4">
+<a class="text-slate-500 hover:text-slate-900 hover:bg-slate-200 flex items-center gap-3 px-3 py-2 font-sans text-sm font-medium" href="#">
+<span class="material-symbols-outlined">settings</span>
+                Settings
+            </a>
+<a class="text-slate-500 hover:text-slate-900 hover:bg-slate-200 flex items-center gap-3 px-3 py-2 font-sans text-sm font-medium" href="#">
+<span class="material-symbols-outlined">help_outline</span>
+                Support
+            </a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 mt-16 p-8">
+<div class="max-w-6xl mx-auto">
+<!-- Header Section with Cloud Pulse -->
+<div class="mb-10">
+<div class="w-full h-0.5 bg-surface-container-high overflow-hidden rounded-full mb-6">
+<div class="w-1/3 h-full bg-primary rounded-full animate-pulse"></div>
+</div>
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<h1 class="text-3xl font-medium text-on-surface tracking-tight mb-2">Welcome, Alexander</h1>
+<p class="text-on-surface-variant max-w-lg">Let's get you set up. Complete your document verification to finalize your onboarding with Sovereign Cloud.</p>
+</div>
+<div class="flex items-center gap-4 text-sm font-medium">
+<span class="text-on-surface-variant">Step 2 of 4</span>
+<div class="w-32 h-2 bg-surface-container-high rounded-full overflow-hidden">
+<div class="w-3/4 h-full bg-primary"></div>
+</div>
+<span class="text-primary">75% Complete</span>
+</div>
+</div>
+</div>
+<!-- Dashboard Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Document Checklist (Bento Left) -->
+<div class="lg:col-span-8 space-y-6">
+<div class="bg-surface-container-lowest rounded-xl p-6 shadow-sm border border-outline-variant/15">
+<div class="flex items-center justify-between mb-8">
+<h3 class="text-lg font-semibold text-on-surface">Document Verification</h3>
+<button class="text-primary text-sm font-medium hover:underline">Download Templates</button>
+</div>
+<div class="space-y-4">
+<!-- Slot: Gov ID (Uploaded) -->
+<div class="group flex items-center justify-between p-4 rounded-lg bg-surface-container-low kinetic-lift transition-all">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">badge</span>
+</div>
+<div>
+<h4 class="text-sm font-semibold">Government ID</h4>
+<p class="text-xs text-on-surface-variant">Passport or National ID card</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="px-2 py-1 bg-green-100 text-green-700 text-[10px] font-bold rounded uppercase tracking-wider">Uploaded</span>
+<span class="material-symbols-outlined text-green-600 text-sm" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<!-- Slot: Offer Letter (AI Processing) -->
+<div class="group flex flex-col p-4 rounded-lg bg-surface-container-lowest border border-primary/20 kinetic-lift transition-all">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">description</span>
+</div>
+<div>
+<h4 class="text-sm font-semibold">Signed Offer Letter</h4>
+<p class="text-xs text-on-surface-variant">Full document with all signatures</p>
+</div>
+</div>
+<span class="px-2 py-1 bg-primary-fixed text-primary text-[10px] font-bold rounded uppercase tracking-wider">AI Processing</span>
+</div>
+<div class="w-full h-1 bg-surface-container-high rounded-full overflow-hidden">
+<div class="w-2/3 h-full bg-primary transition-all duration-1000"></div>
+</div>
+<p class="text-[10px] text-primary-container mt-2 font-medium">Extracting metadata &amp; verifying signature...</p>
+</div>
+<!-- Slot: Education Certificates (Pending) -->
+<div class="group flex items-center justify-between p-4 rounded-lg bg-surface-container-lowest border border-outline-variant/30 kinetic-lift transition-all">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">school</span>
+</div>
+<div>
+<h4 class="text-sm font-semibold">Education Certificates</h4>
+<p class="text-xs text-on-surface-variant">Highest degree or diploma</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="px-2 py-1 bg-surface-container-high text-on-surface-variant text-[10px] font-bold rounded uppercase tracking-wider">Pending</span>
+<button class="bg-primary text-white text-xs px-4 py-1.5 rounded-md font-medium shadow-sm hover:shadow-md transition-all">Upload</button>
+</div>
+</div>
+<!-- Slot: Bank Details (Pending) -->
+<div class="group flex items-center justify-between p-4 rounded-lg bg-surface-container-lowest border border-outline-variant/30 kinetic-lift transition-all">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">account_balance</span>
+</div>
+<div>
+<h4 class="text-sm font-semibold">Bank Details</h4>
+<p class="text-xs text-on-surface-variant">Account number &amp; routing information</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="px-2 py-1 bg-surface-container-high text-on-surface-variant text-[10px] font-bold rounded uppercase tracking-wider">Pending</span>
+<button class="bg-primary text-white text-xs px-4 py-1.5 rounded-md font-medium shadow-sm hover:shadow-md transition-all">Upload</button>
+</div>
+</div>
+<!-- Slot: NDA (Pending) -->
+<div class="group flex items-center justify-between p-4 rounded-lg bg-surface-container-lowest border border-outline-variant/30 kinetic-lift transition-all">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">gavel</span>
+</div>
+<div>
+<h4 class="text-sm font-semibold">Non-Disclosure Agreement</h4>
+<p class="text-xs text-on-surface-variant">Digitally sign or upload copy</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="px-2 py-1 bg-surface-container-high text-on-surface-variant text-[10px] font-bold rounded uppercase tracking-wider">Pending</span>
+<button class="bg-primary text-white text-xs px-4 py-1.5 rounded-md font-medium shadow-sm hover:shadow-md transition-all">Upload</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bento Right Cluster -->
+<div class="lg:col-span-4 space-y-8">
+<!-- Progress Card -->
+<div class="bg-gradient-to-br from-primary to-primary-container p-6 rounded-xl text-white shadow-lg relative overflow-hidden">
+<div class="relative z-10">
+<h3 class="text-lg font-semibold mb-4">Onboarding Progress</h3>
+<div class="space-y-4">
+<div class="flex justify-between text-xs font-medium">
+<span>Documents Pending</span>
+<span>Approved</span>
+</div>
+<div class="h-2 w-full bg-white/20 rounded-full">
+<div class="h-full bg-white rounded-full w-[45%]"></div>
+</div>
+<p class="text-xs text-white/80 italic">Verified by HR: 0 of 5 documents</p>
+</div>
+</div>
+<span class="material-symbols-outlined absolute -bottom-4 -right-4 text-9xl text-white/10 rotate-12" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+<!-- Upcoming Task Card -->
+<div class="bg-surface-container-low rounded-xl p-6 border border-outline-variant/10">
+<h4 class="label-md font-bold text-on-surface-variant uppercase tracking-widest text-[10px] mb-4">Next Up</h4>
+<div class="flex gap-4">
+<div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm shrink-0">
+<span class="material-symbols-outlined text-primary">calendar_today</span>
+</div>
+<div>
+<p class="text-sm font-semibold text-on-surface">IT Equipment Setup</p>
+<p class="text-xs text-on-surface-variant mt-1">Scheduled for tomorrow at 10:00 AM PST</p>
+</div>
+</div>
+</div>
+<!-- Team Preview -->
+<div class="bg-surface-container-lowest rounded-xl p-6 shadow-sm border border-outline-variant/15">
+<h4 class="text-sm font-semibold text-on-surface mb-4">Your New Team</h4>
+<div class="space-y-4">
+<div class="flex items-center gap-3">
+<img class="w-10 h-10 rounded-full" data-alt="Professional woman with brown hair smiling warmly, soft lighting, creative agency background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA30yzaB4ftm_PIgGxM6DqScBRm2wpXFLQUyVsqrXhxyCHOmhZpBM2II6bNu_o6l_EeZZo9D4xrEWwV8Fx629237ZE0dqb82rdHCRoUAahQ3uMiMqz88EreLLkxWM62ivrGtqZOHcKPA18xzewRS-ish2uaaNCgCgCT5UQN131vvXjqDaBtEw09IBvyaYQtPweZ2wlxr6-Xg6RtsGoLE4nn5aWLpigOgqau_sIYQoYxycYsazLaw-ni5Oz6rC6qawhpCBx37bTxXg"/>
+<div>
+<p class="text-sm font-medium">Sarah Jenkins</p>
+<p class="text-[10px] text-on-surface-variant">Design Manager • Mentor</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<img class="w-10 h-10 rounded-full" data-alt="Modern professional male portrait, slight stubble, neutral expression, industrial loft background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnXDQJy_cAxLhYRoaTTU8Av3fGeOncCBgoulf3Uxx7JweZp0EE1LZ23byY0pBrq_EPbQ6ntvZPzFb8a4lJupDKj6J4YpXjTiZpOhxaZnl5S02DaJ4lWTeLzzVk3Qr0jTUQ6kV0_nJyS9madboI8kGAteRQyvtHmRbv0o4M-gjQr10yvem1x9C38SfQtf3y8fqyuzpmhVVVUb-YdyFBQcHob0dbnDzQLP0QoZzFVg09M8n84TfOdoMVI-ylHg2FNnB912D5KZzuiA"/>
+<div>
+<p class="text-sm font-medium">David Chen</p>
+<p class="text-[10px] text-on-surface-variant">Senior Engineer</p>
+</div>
+</div>
+</div>
+<button class="w-full mt-6 py-2 border border-outline-variant text-on-surface-variant text-xs font-medium rounded-lg hover:bg-surface-container-low transition-colors">Say Hello</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- FAB Suppression: No FAB on Dashboard as per guidelines -->
+</body></html>
