@@ -49,7 +49,7 @@ jobs:
           VITE_B2C_CLIENT_ID: 05d3b4b8-28e7-4940-91b9-2ed2b18c7237
           VITE_B2C_POLICY: B2X_1_susi
           VITE_B2C_DIRECTORY_ID: b3b73ebc-0818-492c-92b8-704c45a13557
-          VITE_API_BASE_URL: https://onboardteam.azurewebsites.net
+          VITE_API_BASE_URL: https://onboard-back.azurewebsites.net
           ###### End of Repository/Build Configurations ######
 
   close_pull_request_job:
