@@ -43,6 +43,15 @@ const NewHireDashboard = () => {
         if (!file || !uploadingDocType) return;
 
         const currentDocType = uploadingDocType;
+        const meta = getDocMeta(currentDocType);
+
+        // Strict format validation
+        if (meta.allowedTypes && !meta.allowedTypes.includes(file.type)) {
+            alert(`Invalid file format for ${meta.title}. Allowed formats: ${meta.formats}`);
+            event.target.value = '';
+            setUploadingDocType(null);
+            return;
+        }
 
         try {
             // Set status to uploading and init progress at 0
@@ -130,12 +139,48 @@ const NewHireDashboard = () => {
 
     const getDocMeta = (docType) => {
         switch (docType) {
-            case 'government_id': return { title: 'Government ID', icon: 'badge', formats: 'PDF, JPG, PNG' };
-            case 'offer_letter': return { title: 'Offer Letter', icon: 'contract', formats: 'PDF only' };
-            case 'education_cert': return { title: 'Education Certificates', icon: 'school', formats: 'PDF, JPG (Max 10MB)' };
-            case 'bank_details': return { title: 'Bank Details', icon: 'account_balance', formats: 'PDF, JPG (Max 10MB)' };
-            case 'nda': return { title: 'NDA', icon: 'policy', formats: 'PDF only' };
-            default: return { title: docType, icon: 'description', formats: 'Any' };
+            case 'government_id': 
+                return { 
+                    title: 'Government ID', 
+                    icon: 'badge', 
+                    formats: 'PDF, JPG, PNG',
+                    allowedTypes: ['application/pdf', 'image/jpeg', 'image/png']
+                };
+            case 'offer_letter': 
+                return { 
+                    title: 'Offer Letter', 
+                    icon: 'contract', 
+                    formats: 'PDF only',
+                    allowedTypes: ['application/pdf']
+                };
+            case 'education_cert': 
+                return { 
+                    title: 'Education Certificates', 
+                    icon: 'school', 
+                    formats: 'PDF, JPG (Max 10MB)',
+                    allowedTypes: ['application/pdf', 'image/jpeg', 'image/png']
+                };
+            case 'bank_details': 
+                return { 
+                    title: 'Bank Details', 
+                    icon: 'account_balance', 
+                    formats: 'PDF, JPG (Max 10MB)',
+                    allowedTypes: ['application/pdf', 'image/jpeg', 'image/png']
+                };
+            case 'nda': 
+                return { 
+                    title: 'NDA', 
+                    icon: 'policy', 
+                    formats: 'PDF only',
+                    allowedTypes: ['application/pdf']
+                };
+            default: 
+                return { 
+                    title: docType, 
+                    icon: 'description', 
+                    formats: 'Any',
+                    allowedTypes: null 
+                };
         }
     };
 
