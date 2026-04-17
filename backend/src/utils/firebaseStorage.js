@@ -6,24 +6,27 @@ const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
 const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
 const storageBucket = process.env.FIREBASE_STORAGE_BUCKET;
 
+// Sanitize storage bucket name (strip gs:// if present)
+const sanitizedBucket = storageBucket?.replace(/^gs:\/\//, '');
+
 // Initialize Firebase Admin only once
 if (!admin.apps.length) {
-  if (projectId && clientEmail && privateKey && storageBucket) {
+  if (projectId && clientEmail && privateKey && sanitizedBucket) {
     admin.initializeApp({
       credential: admin.credential.cert({
         projectId,
         clientEmail,
         privateKey,
       }),
-      storageBucket
+      storageBucket: sanitizedBucket
     });
-    console.log(`✅ Firebase Admin initialized. Storage Bucket: ${storageBucket}`);
+    console.log(`✅ Firebase Admin initialized. Storage Bucket: ${sanitizedBucket}`);
   } else {
     // If no credentials, we still initialize for the sake of starting the server, 
     // but the bucket calls will fail. This supports the "placeholder" .env state.
     console.warn('⚠️ Firebase credentials not fully configured in .env. Storage operations will fail.');
     admin.initializeApp({
-      storageBucket: storageBucket || 'placeholder.appspot.com'
+      storageBucket: sanitizedBucket || 'placeholder.appspot.com'
     });
   }
 }

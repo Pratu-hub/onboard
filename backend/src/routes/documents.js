@@ -142,17 +142,21 @@ router.get('/:id/view-url', authenticate, async (req, res) => {
     }
 
     const doc = result.recordset[0];
+    console.log(`Generating view URL for doc ID ${docId}, filename: ${doc.filename}`);
 
     // Only allow the owner or HR roles to view
     if (doc.user_id !== req.user.id && !['HR_ADMIN', 'HR_REVIEWER'].includes(req.user.role)) {
+      console.warn(`Unauthorized access attempt to doc ${docId} by user ${req.user.id}`);
       return res.status(403).json({ error: 'Forbidden' });
     }
 
     if (!doc.filename) {
+      console.warn(`No filename found for doc ${docId}`);
       return res.status(400).json({ error: 'No file uploaded for this document' });
     }
 
     const viewUrl = await generateReadSasUrl(doc.filename, 60);
+    console.log(`Successfully generated view URL for ${doc.filename}`);
     res.json({ viewUrl, originalName: doc.original_name });
   } catch (err) {
     console.error('View URL generation error:', err.message);
