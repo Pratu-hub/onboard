@@ -10,9 +10,9 @@ async function seed() {
   // Seed users
   const users = [
     { email: 'alexander@sovereign.cloud', name: 'Alexander', role: 'NEW_HIRE', department: 'Engineering' },
-    { email: 'sarah.jenkins@sovereign.cloud', name: 'Sarah Jenkins', role: 'HR_ADMIN', department: 'Human Resources' },
-    { email: 'david.chen@sovereign.cloud', name: 'David Chen', role: 'IT_ADMIN', department: 'IT Operations' },
-    { email: 'reviewer@sovereign.cloud', name: 'Maria Lopez', role: 'HR_REVIEWER', department: 'Human Resources' },
+    { email: 'sarah.jenkins@sovereign.cloud', name: 'Sarah Jenkins', role: 'HR', department: 'Human Resources' },
+    { email: 'it.admin@sovereign.cloud', name: 'David Wright', role: 'IT_ADMIN', department: 'IT' },
+    { email: 'reviewer@sovereign.cloud', name: 'Maria Lopez', role: 'HR', department: 'Human Resources' },
   ];
 
   for (const u of users) {

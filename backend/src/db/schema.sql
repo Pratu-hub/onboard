@@ -7,7 +7,7 @@ CREATE TABLE users (
     id INT IDENTITY(1,1) PRIMARY KEY,
     email NVARCHAR(255) NOT NULL UNIQUE,
     name NVARCHAR(255) NOT NULL,
-    role NVARCHAR(50) NOT NULL CHECK (role IN ('NEW_HIRE', 'HR_REVIEWER', 'HR_ADMIN', 'IT_ADMIN')),
+    role NVARCHAR(50) NOT NULL CHECK (role IN ('NEW_HIRE', 'HR', 'IT_ADMIN')),
     department NVARCHAR(255),
     employee_id NVARCHAR(50),
     joining_date DATE,
