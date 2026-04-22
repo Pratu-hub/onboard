@@ -229,7 +229,20 @@ router.patch('/:id/status', authenticate, requireRole('HR_ADMIN', 'HR_REVIEWER')
       return res.status(404).json({ error: 'Document not found' });
     }
 
-    res.json({ document: result.recordset[0] });
+    const updatedDoc = result.recordset[0];
+
+    // Log to audit_logs
+    await pool.request()
+      .input('user_id', sql.Int, updatedDoc.user_id)
+      .input('reviewer_name', sql.NVarChar, req.user.name)
+      .input('action_type', sql.NVarChar, status.toUpperCase())
+      .input('notes', sql.NVarChar, reviewer_notes || `Document status updated to ${status}`)
+      .query(`
+        INSERT INTO audit_logs (user_id, reviewer_name, action_type, notes)
+        VALUES (@user_id, @reviewer_name, @action_type, @notes)
+      `);
+
+    res.json({ document: updatedDoc });
   } catch (err) {
     console.error('Update document status error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
@@ -279,6 +292,28 @@ router.post('/:id/verify', authenticate, requireRole('HR_ADMIN', 'HR_REVIEWER'),
   } catch (err) {
     console.error('Manual verify error:', err.message);
     res.status(500).json({ error: 'AI verification failed' });
+  }
+});
+
+/**
+ * GET /api/documents/cases/:userId/logs
+ * Fetch audit history for a candidate case.
+ */
+router.get('/cases/:userId/logs', authenticate, requireRole('HR_ADMIN', 'HR_REVIEWER'), async (req, res) => {
+  const userId = parseInt(req.params.userId);
+  try {
+    const pool = await getPool();
+    const result = await pool.request()
+      .input('userId', sql.Int, userId)
+      .query(`
+        SELECT * FROM audit_logs 
+        WHERE user_id = @userId 
+        ORDER BY created_at DESC
+      `);
+    res.json({ logs: result.recordset });
+  } catch (err) {
+    console.error('Fetch audit logs error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 

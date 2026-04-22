@@ -2,14 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../../api';
 import PendingCasesList from './components/PendingCasesList';
 import CaseDetailView from './components/CaseDetailView';
-import AuditLogView from './components/AuditLogView';
 
 const HrReviewerDashboard = () => {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeView, setActiveView] = useState('LIST'); // LIST, DETAIL, AUDIT
+  const [activeView, setActiveView] = useState('LIST'); // LIST, DETAIL
   const [selectedCase, setSelectedCase] = useState(null);
-  const [documentToReject, setDocumentToReject] = useState(null);
 
   useEffect(() => {
     fetchDocuments();
@@ -34,7 +32,7 @@ const HrReviewerDashboard = () => {
         body: { status: 'verified' }
       });
       
-      // Update local state for immediate feedback
+      // Update local flat list
       setDocuments(prev => prev.map(d => d.id === docId ? { ...d, status: 'verified' } : d));
       
       // Update selectedCase if we are in detail view
@@ -53,8 +51,9 @@ const HrReviewerDashboard = () => {
     try {
       await api(`/documents/${docId}/status`, {
         method: 'PATCH',
-        body: { status: 'rejected', notes }
+        body: { status: 'rejected', reviewer_notes: notes }
       });
+      
       setDocuments(prev => prev.map(d => d.id === docId ? { ...d, status: 'rejected', reviewer_notes: notes } : d));
       
       if (selectedCase) {
@@ -63,9 +62,9 @@ const HrReviewerDashboard = () => {
           documents: prev.documents.map(d => d.id === docId ? { ...d, status: 'rejected', reviewer_notes: notes } : d)
         }));
       }
-      setActiveView('DETAIL');
     } catch (err) {
       alert('Failed to reject document');
+      throw err; // Re-throw so CaseDetailView can handle UI state if needed
     }
   };
 
@@ -115,61 +114,76 @@ const HrReviewerDashboard = () => {
   }
 
   return (
-    <div className="bg-[#fdf8f6] min-h-screen font-body text-on-surface">
-      {/* ── Side Nav Placeholder (Matches design layout) ── */}
-      <aside className="fixed left-0 top-0 h-screen w-64 border-r border-slate-200 bg-slate-50 flex flex-col py-6 z-50">
-        <div className="px-6 mb-8">
-          <h1 className="text-xl font-bold tracking-tighter text-primary">OnboardIQ</h1>
-          <p className="text-xs font-headline font-semibold text-slate-500 uppercase tracking-widest mt-1">HR Intelligence</p>
+    <div className="bg-surface h-screen flex overflow-hidden font-body text-on-surface">
+      {/* ── Side NavBar (Stitch Mockup Design) ── */}
+      <aside className="flex flex-col h-full py-6 bg-slate-50 w-64 border-r border-slate-200 z-50">
+        <div className="px-6 mb-10 flex items-center gap-3">
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-on-primary">
+            <span className="material-symbols-outlined" style={{fontVariationSettings: "'FILL' 1"}}>analytics</span>
+          </div>
+          <div>
+            <h1 className="text-xl font-bold tracking-tighter text-primary">OnboardIQ</h1>
+            <p className="text-[10px] uppercase tracking-widest text-slate-500 font-headline">HR Intelligence</p>
+          </div>
         </div>
         <nav className="flex-1 space-y-1">
           <button 
             onClick={() => setActiveView('LIST')}
-            className={`w-full flex items-center px-6 py-3 transition-colors duration-200 font-headline tracking-tight font-semibold ${activeView === 'LIST' ? 'text-primary border-r-4 border-primary bg-slate-100' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}`}
+            className={`w-full flex items-center px-6 py-3 font-headline tracking-tight font-semibold transition-colors duration-200 ${activeView === 'LIST' ? 'text-primary border-r-4 border-primary bg-slate-100' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}`}
           >
             <span className="material-symbols-outlined mr-3">assignment_late</span>
-            Pending Cases
+            <span>Pending Cases</span>
           </button>
           <button className="w-full flex items-center px-6 py-3 text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors duration-200 font-headline tracking-tight font-semibold">
             <span className="material-symbols-outlined mr-3">rate_review</span>
-            My Reviews
+            <span>My Reviews</span>
           </button>
         </nav>
-        <div className="px-6 pt-6 mt-auto border-t border-slate-200">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-white text-[10px] font-bold">AR</div>
-            <div>
-              <p className="text-xs font-bold text-on-surface">Alex Rivera</p>
-              <p className="text-[10px] text-on-surface-variant">Senior HR Lead</p>
+        <div className="px-6 mt-auto">
+          <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
+            <p className="text-xs font-bold text-primary mb-1">System Status</p>
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+              <span className="text-[10px] text-on-surface-variant font-medium uppercase tracking-tighter">Azure Services Active</span>
             </div>
           </div>
         </div>
       </aside>
 
       {/* ── Main Content Canvas ── */}
-      <main className="ml-64 min-h-screen flex flex-col">
-        {/* Top Header */}
-        <header className="sticky top-0 z-40 flex justify-between items-center w-full px-8 h-16 bg-white/80 backdrop-blur-md border-b border-slate-100 flex-shrink-0">
-          <div className="flex items-center flex-1 max-w-xl">
-            <div className="relative w-full group">
-              <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 group-focus-within:text-primary">
-                <span className="material-symbols-outlined text-sm">search</span>
-              </span>
+      <main className="flex-1 flex flex-col min-w-0 bg-surface h-full">
+        {/* TopNavBar (Stitch Mockup Design) */}
+        <header className="flex justify-between items-center w-full px-8 h-16 bg-white/80 backdrop-blur-md border-b border-slate-100 z-10 flex-shrink-0">
+          <div className="flex items-center gap-4 flex-1">
+            <div className="relative w-full max-w-md focus-within:ring-2 focus-within:ring-primary/20 transition-all rounded-full">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
               <input 
-                className="block w-full pl-10 pr-3 py-2 border-none bg-surface-container-low rounded-xl text-sm focus:ring-2 focus:ring-primary/20 transition-all" 
-                placeholder="Search hire or case ID..." 
+                className="w-full bg-surface-container-high border-none rounded-full py-2 pl-10 pr-4 text-xs focus:ring-0" 
+                placeholder="Search case ID, candidate, or document..." 
                 type="text"
               />
             </div>
           </div>
-          <div className="flex items-center space-x-6 text-slate-600">
-            <button className="hover:text-primary transition-all"><span className="material-symbols-outlined">notifications</span></button>
-            <button className="hover:text-primary transition-all"><span className="material-symbols-outlined">help_outline</span></button>
+          <div className="flex items-center gap-6">
+            <div className="flex gap-4 text-slate-600">
+              <button className="hover:text-primary transition-all"><span className="material-symbols-outlined">notifications</span></button>
+              <button className="hover:text-primary transition-all"><span className="material-symbols-outlined">help_outline</span></button>
+            </div>
+            <div className="h-8 w-[1px] bg-outline-variant/30"></div>
+            <div className="flex items-center gap-3">
+              <div className="text-right">
+                <p className="font-bold text-on-surface leading-none text-sm">Sarah Jenkins</p>
+                <p className="text-[10px] text-on-surface-variant font-medium">Senior HR Auditor</p>
+              </div>
+              <div className="w-10 h-10 rounded-full border-2 border-primary/10 bg-primary-container flex items-center justify-center text-white font-bold text-sm shadow-sm">
+                SJ
+              </div>
+            </div>
           </div>
         </header>
 
         {/* View Port */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden relative">
           {activeView === 'LIST' && (
             <div className="p-8 h-full overflow-y-auto">
               <PendingCasesList 
@@ -187,22 +201,9 @@ const HrReviewerDashboard = () => {
               currentCase={selectedCase}
               onBack={() => setActiveView('LIST')}
               onVerify={handleVerify}
-              onRejectInit={(doc) => {
-                setDocumentToReject(doc);
-                setActiveView('AUDIT');
-              }}
+              onReject={handleReject}
               onApproveAll={handleApproveAll}
             />
-          )}
-
-          {activeView === 'AUDIT' && documentToReject && (
-            <div className="p-8 h-full overflow-y-auto">
-              <AuditLogView 
-                document={documentToReject}
-                onBack={() => setActiveView('DETAIL')}
-                onSubmit={(notes) => handleReject(documentToReject.id, notes)}
-              />
-            </div>
           )}
         </div>
       </main>
