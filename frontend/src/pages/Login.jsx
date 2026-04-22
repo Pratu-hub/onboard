@@ -15,9 +15,7 @@ const Login = () => {
 
   if (user) {
     if (user.role === 'NEW_HIRE') return <Navigate to="/profile" />;
-    if (user.role === 'HR_ADMIN') return <Navigate to="/dashboard/hr-admin" />;
-    if (user.role === 'IT_ADMIN') return <Navigate to="/dashboard/it-admin" />;
-    if (user.role === 'HR_REVIEWER') return <Navigate to="/dashboard/hr-reviewer" />;
+    if (user.role === 'HR') return <Navigate to="/dashboard/hr" />;
     return <Navigate to="/profile" />;
   }
 
@@ -41,8 +39,7 @@ const Login = () => {
       await login(role);
       navigate(
         role === 'NEW_HIRE' ? '/profile'
-        : role === 'HR_ADMIN' ? '/dashboard/hr-admin'
-        : role === 'HR_REVIEWER' ? '/dashboard/hr-reviewer'
+        : role === 'HR' ? '/dashboard/hr'
         : '/dashboard/it-admin'
       );
     } catch (err) {
@@ -139,8 +136,7 @@ const Login = () => {
                      className="w-full px-4 py-3 bg-surface-container-low border border-outline-variant/30 rounded-lg focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all text-on-surface"
                   >
                      <option value="NEW_HIRE">New Hire Profile (Alexander)</option>
-                     <option value="HR_ADMIN">HR Admin Profile (Sarah Jenkins)</option>
-                     <option value="HR_REVIEWER">HR Reviewer Profile (Maria Lopez)</option>
+                     <option value="HR">HR Profile (Sarah Jenkins)</option>
                      <option value="IT_ADMIN">IT Admin Profile (David Chen)</option>
                   </select>
                 </div>
