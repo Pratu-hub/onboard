@@ -15,7 +15,6 @@ const formatDate = (dateStr) => {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 };
 
-/* Color ring for initials avatar — cycles through primary/secondary/tertiary */
 const AVATAR_COLORS = [
   { bg: 'bg-primary/10', text: 'text-primary' },
   { bg: 'bg-secondary/10', text: 'text-secondary' },
@@ -31,6 +30,15 @@ const statusConfig = {
   rejected:       { label: 'Rejected',     bg: 'bg-red-50',     text: 'text-red-700', border: 'border-red-100' },
 };
 
+/* Determine overall case status from a collection of documents */
+const getCaseStatus = (docs) => {
+  if (docs.some(d => d.status === 'flagged')) return 'flagged';
+  if (docs.some(d => d.status === 'rejected')) return 'rejected';
+  if (docs.some(d => d.status === 'pending' || d.status === 'uploaded')) return 'pending';
+  if (docs.some(d => d.status === 'ai_processing')) return 'ai_processing';
+  return 'verified';
+};
+
 /* ──────── Component ──────── */
 
 const PendingCasesList = ({ documents, onCaseSelect }) => {
@@ -39,44 +47,56 @@ const PendingCasesList = ({ documents, onCaseSelect }) => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  /* Derive unique departments from data */
-  const departments = useMemo(() => {
-    const set = new Set(documents.map((d) => d.user_department).filter(Boolean));
-    return ['all', ...Array.from(set).sort()];
+  /* Group documents by user to create "Cases" */
+  const cases = useMemo(() => {
+    const userMap = new Map();
+    documents.forEach(doc => {
+      if (!userMap.has(doc.user_id)) {
+        userMap.set(doc.user_id, {
+          user_id: doc.user_id,
+          user_name: doc.user_name,
+          user_email: doc.user_email,
+          user_department: doc.user_department,
+          user_joining_date: doc.user_joining_date,
+          user_manager_name: doc.user_manager_name,
+          user_role: doc.user_role,
+          documents: []
+        });
+      }
+      userMap.get(doc.user_id).documents.push(doc);
+    });
+
+    return Array.from(userMap.values()).map(c => ({
+      ...c,
+      status: getCaseStatus(c.documents)
+    }));
   }, [documents]);
 
-  /* Filter + paginate */
+  const departments = useMemo(() => {
+    const set = new Set(cases.map((c) => c.user_department).filter(Boolean));
+    return ['all', ...Array.from(set).sort()];
+  }, [cases]);
+
   const filtered = useMemo(() => {
-    return documents.filter((doc) => {
-      if (departmentFilter !== 'all' && doc.user_department !== departmentFilter) return false;
-      if (statusFilter !== 'all' && doc.status !== statusFilter) return false;
+    return cases.filter((c) => {
+      if (departmentFilter !== 'all' && c.user_department !== departmentFilter) return false;
+      if (statusFilter !== 'all' && c.status !== statusFilter) return false;
       if (searchQuery) {
         const q = searchQuery.toLowerCase();
         return (
-          (doc.user_name || '').toLowerCase().includes(q) ||
-          (doc.user_email || '').toLowerCase().includes(q) ||
-          (doc.doc_type || '').toLowerCase().includes(q)
+          (c.user_name || '').toLowerCase().includes(q) ||
+          (c.user_email || '').toLowerCase().includes(q)
         );
       }
       return true;
     });
-  }, [documents, departmentFilter, statusFilter, searchQuery]);
+  }, [cases, departmentFilter, statusFilter, searchQuery]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
   const pageItems = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
-  /* Stat counts */
-  const totalActive = documents.length;
-  const highPriority = documents.filter((d) => ['flagged', 'rejected'].includes(d.status)).length;
-
-  if (!documents || documents.length === 0) {
-    return (
-      <div className="bg-surface-container-lowest rounded-xl p-12 text-center">
-        <span className="material-symbols-outlined text-5xl text-on-surface-variant/40 mb-4 block">assignment</span>
-        <p className="text-on-surface-variant text-lg">No documents pending review.</p>
-      </div>
-    );
-  }
+  const totalActive = cases.length;
+  const highPriority = cases.filter((c) => ['flagged', 'rejected'].includes(c.status)).length;
 
   return (
     <div>
@@ -124,7 +144,6 @@ const PendingCasesList = ({ documents, onCaseSelect }) => {
         >
           <option value="all">All Statuses</option>
           <option value="pending">Pending Docs</option>
-          <option value="uploaded">Uploaded</option>
           <option value="ai_processing">Under Review</option>
           <option value="flagged">Flagged</option>
           <option value="verified">Verified</option>
@@ -136,7 +155,7 @@ const PendingCasesList = ({ documents, onCaseSelect }) => {
             type="text"
             value={searchQuery}
             onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-            placeholder="Search cases..."
+            placeholder="Search candidates..."
             className="bg-surface-container-lowest border-none rounded-lg text-sm pl-10 py-2 pr-4 shadow-sm focus:ring-2 focus:ring-primary/20 focus:outline-none w-56"
           />
         </div>
@@ -150,57 +169,48 @@ const PendingCasesList = ({ documents, onCaseSelect }) => {
               <tr className="bg-slate-50/50 border-b border-slate-100">
                 <th className="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">Hire Name</th>
                 <th className="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">Department</th>
-                <th className="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">Document</th>
-                <th className="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">Uploaded</th>
+                <th className="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">Joining Date</th>
+                <th className="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">Docs</th>
                 <th className="px-6 py-4 text-[11px] uppercase tracking-widest font-bold text-slate-400">Case Status</th>
                 <th className="px-6 py-4"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {pageItems.map((doc, idx) => {
+              {pageItems.map((c, idx) => {
                 const color = AVATAR_COLORS[idx % AVATAR_COLORS.length];
-                const status = statusConfig[doc.status] || statusConfig.pending;
+                const status = statusConfig[c.status] || statusConfig.pending;
                 return (
-                  <tr key={doc.id} className="hover:bg-slate-50/80 transition-colors group">
-                    {/* Name + Initials Avatar */}
+                  <tr key={c.user_id} className="hover:bg-slate-50/80 transition-colors group">
                     <td className="px-6 py-5">
                       <div className="flex items-center gap-3">
                         <div className={`w-10 h-10 rounded-full ${color.bg} flex items-center justify-center ${color.text} font-bold text-sm`}>
-                          {getInitials(doc.user_name)}
+                          {getInitials(c.user_name)}
                         </div>
                         <div>
-                          <span className="font-bold text-on-surface text-sm">{doc.user_name}</span>
-                          <p className="text-[11px] text-on-surface-variant mt-0.5">{doc.user_email}</p>
+                          <span className="font-bold text-on-surface text-sm">{c.user_name}</span>
+                          <p className="text-[11px] text-on-surface-variant mt-0.5">{c.user_email}</p>
                         </div>
                       </div>
                     </td>
-
-                    {/* Department */}
                     <td className="px-6 py-5">
-                      <span className="text-sm text-on-surface-variant">{doc.user_department || '—'}</span>
+                      <span className="text-sm text-on-surface-variant">{c.user_department || '—'}</span>
                     </td>
-
-                    {/* Document Type */}
                     <td className="px-6 py-5">
-                      <span className="text-sm text-on-surface capitalize">{(doc.doc_type || '').replace(/_/g, ' ')}</span>
+                      <span className="text-sm font-medium text-on-surface">{formatDate(c.user_joining_date)}</span>
                     </td>
-
-                    {/* Uploaded Date */}
                     <td className="px-6 py-5">
-                      <span className="text-sm font-medium text-on-surface">{formatDate(doc.uploaded_at)}</span>
+                      <span className="text-xs text-on-surface-variant font-medium">
+                        {c.documents.length} Files
+                      </span>
                     </td>
-
-                    {/* Status Badge */}
                     <td className="px-6 py-5">
                       <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${status.bg} ${status.text} border ${status.border}`}>
                         {status.label}
                       </span>
                     </td>
-
-                    {/* Action */}
                     <td className="px-6 py-5 text-right">
                       <button
-                        onClick={() => onCaseSelect(doc)}
+                        onClick={() => onCaseSelect(c)}
                         className="px-5 py-2.5 bg-gradient-to-br from-primary to-primary-container text-white text-[11px] uppercase tracking-widest font-bold rounded-lg shadow-sm hover:shadow-md transition-all active:scale-95"
                       >
                         Review Case
