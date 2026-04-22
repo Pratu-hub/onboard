@@ -6,7 +6,7 @@ import DashboardLayout from './components/DashboardLayout';
 import Login from './pages/Login';
 import NewHireDashboard from './pages/NewHireDashboard';
 import HrAdminDashboard from './pages/HrAdminDashboard';
-import HrReviewerDashboard from './pages/HrReviewerDashboard';
+import HrReviewerDashboard from './features/hr-reviewer/HrReviewerDashboard';
 import ItAdminDashboard from './pages/ItAdminDashboard';
 import NewHireProfile from './pages/NewHireProfile';
 import StatusTracker from './pages/StatusTracker';
