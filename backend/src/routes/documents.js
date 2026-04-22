@@ -27,7 +27,7 @@ router.get('/', authenticate, async (req, res) => {
 
     if (['HR_ADMIN', 'HR_REVIEWER'].includes(req.user.role)) {
       result = await pool.request().query(`
-        SELECT d.*, u.name AS user_name, u.email AS user_email
+        SELECT d.*, u.name AS user_name, u.email AS user_email, u.department AS user_department, u.joining_date AS user_joining_date
         FROM documents d
         JOIN users u ON d.user_id = u.id
         ORDER BY d.uploaded_at DESC

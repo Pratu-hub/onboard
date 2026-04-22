@@ -47,15 +47,6 @@ const HrReviewerDashboard = () => {
   return (
     <div className="bg-[#fdf8f6] min-h-screen pb-12 font-sans px-8 py-8">
       {activeView === 'LIST' && (
-        <div className="mb-10">
-          <h1 className="text-[2rem] font-light text-[#1c1b1b] tracking-tight mb-2">Pending Document Reviews</h1>
-          <p className="text-[#1c1b1b]/70">
-            Review and verify uploaded identity and compliance documents.
-          </p>
-        </div>
-      )}
-
-      {activeView === 'LIST' && (
         <PendingCasesList 
           documents={documents} 
           onCaseSelect={(doc) => {
