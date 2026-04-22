@@ -8,7 +8,7 @@ const handleAuthError = (status) => {
   return false;
 };
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://onboard-back.azurewebsites.net';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
 
 async function api(path, options = {}) {
   const token = localStorage.getItem('onboardiq_token');

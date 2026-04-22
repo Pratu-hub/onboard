@@ -3,7 +3,7 @@ import { useMsal } from "@azure/msal-react";
 import { loginRequest } from "../authConfig";
 
 const AuthContext = createContext(null);
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://onboard-back.azurewebsites.net';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
