@@ -12,7 +12,7 @@ router.get('/progress', authenticate, async (req, res) => {
   let targetUserId = req.user.id;
 
   // HR roles can query other users
-  if (req.query.user_id && ['HR_ADMIN', 'HR_REVIEWER'].includes(req.user.role)) {
+  if (req.query.user_id && ['HR'].includes(req.user.role)) {
     targetUserId = parseInt(req.query.user_id);
   }
 

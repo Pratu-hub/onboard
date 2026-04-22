@@ -6,9 +6,9 @@ const { requireRole } = require('../middleware/rbac');
 
 /**
  * GET /api/users
- * HR_ADMIN only — list all users.
+ * HR only — list all users.
  */
-router.get('/', authenticate, requireRole('HR_ADMIN'), async (req, res) => {
+router.get('/', authenticate, requireRole('HR'), async (req, res) => {
   try {
     const pool = await getPool();
     const result = await pool.request()
@@ -51,13 +51,13 @@ router.get('/:id', authenticate, async (req, res) => {
 
 /**
  * PUT /api/users/:id
- * Users can update their own profile; HR_ADMIN can update anyone.
+ * Users can update their own profile; HR can update anyone.
  */
 router.put('/:id', authenticate, async (req, res) => {
   const userId = parseInt(req.params.id);
 
-  if (req.user.role === 'NEW_HIRE' && req.user.id !== userId) {
-    return res.status(403).json({ error: 'You can only update your own profile' });
+  if (req.user.id !== userId && !['HR'].includes(req.user.role)) {
+    return res.status(403).json({ error: 'Forbidden. You can only update your own profile.' });
   }
 
   const { name, department, employee_id, joining_date, manager_name } = req.body;

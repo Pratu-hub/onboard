@@ -13,8 +13,8 @@ const { authenticate } = require('../middleware/auth');
 router.post('/login', async (req, res) => {
   const { role } = req.body;
 
-  if (!role || !['NEW_HIRE', 'HR_REVIEWER', 'HR_ADMIN', 'IT_ADMIN'].includes(role)) {
-    return res.status(400).json({ error: 'Invalid role. Must be one of: NEW_HIRE, HR_REVIEWER, HR_ADMIN, IT_ADMIN' });
+  if (!role || !['NEW_HIRE', 'HR', 'IT_ADMIN'].includes(role)) {
+    return res.status(400).json({ error: 'Invalid role. Must be one of: NEW_HIRE, HR, IT_ADMIN' });
   }
 
   try {
@@ -86,21 +86,19 @@ router.post('/b2c', async (req, res) => {
         role = decoded.extension_Role;
       } else if (decoded.roles && Array.isArray(decoded.roles) && decoded.roles.length > 0) {
         // App roles assigned in Entra ID
-        const validRoles = ['NEW_HIRE', 'HR_REVIEWER', 'HR_ADMIN', 'IT_ADMIN'];
+        const validRoles = ['NEW_HIRE', 'HR', 'IT_ADMIN'];
         const matchedRole = decoded.roles.find(r => validRoles.includes(r.toUpperCase()));
         if (matchedRole) role = matchedRole.toUpperCase();
       } else if (decoded.jobTitle) {
         const title = decoded.jobTitle.toLowerCase();
-        if (title.includes('hr admin') || title.includes('manager')) role = 'HR_ADMIN';
-        else if (title.includes('hr reviewer') || title.includes('recruiter')) role = 'HR_REVIEWER';
+        if (title.includes('hr') || title.includes('manager') || title.includes('recruiter')) role = 'HR';
         else if (title.includes('it admin') || title.includes('system')) role = 'IT_ADMIN';
       } else if (decoded.groups && Array.isArray(decoded.groups)) {
-        if (decoded.groups.includes('HR_ADMIN_GROUP')) role = 'HR_ADMIN';
+        if (decoded.groups.includes('HR_ADMIN_GROUP') || decoded.groups.includes('HR_REVIEWER_GROUP')) role = 'HR';
         else if (decoded.groups.includes('IT_ADMIN_GROUP')) role = 'IT_ADMIN';
-        else if (decoded.groups.includes('HR_REVIEWER_GROUP')) role = 'HR_REVIEWER';
       }
       
-      const validDbRoles = ['NEW_HIRE', 'HR_REVIEWER', 'HR_ADMIN', 'IT_ADMIN'];
+      const validDbRoles = ['NEW_HIRE', 'HR', 'IT_ADMIN'];
       if (!validDbRoles.includes(role)) {
         role = 'NEW_HIRE';
       }

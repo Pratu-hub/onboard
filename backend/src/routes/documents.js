@@ -25,7 +25,7 @@ router.get('/', authenticate, async (req, res) => {
     const pool = await getPool();
     let result;
 
-    if (['HR_ADMIN', 'HR_REVIEWER'].includes(req.user.role)) {
+    if (['HR'].includes(req.user.role)) {
       result = await pool.request().query(`
         SELECT d.*, u.name AS user_name, u.email AS user_email, u.department AS user_department, u.joining_date AS user_joining_date, u.manager_name AS user_manager_name, u.role AS user_role
         FROM documents d
@@ -180,7 +180,7 @@ router.get('/:id/view-url', authenticate, async (req, res) => {
     console.log(`Generating view URL for doc ID ${docId}, filename: ${doc.filename}`);
 
     // Only allow the owner or HR roles to view
-    if (doc.user_id !== req.user.id && !['HR_ADMIN', 'HR_REVIEWER'].includes(req.user.role)) {
+    if (doc.user_id !== req.user.id && !['HR'].includes(req.user.role)) {
       console.warn(`Unauthorized access attempt to doc ${docId} by user ${req.user.id}`);
       return res.status(403).json({ error: 'Forbidden' });
     }
@@ -203,7 +203,7 @@ router.get('/:id/view-url', authenticate, async (req, res) => {
  * PATCH /api/documents/:id/status
  * HR roles only — update document status (verify / reject).
  */
-router.patch('/:id/status', authenticate, requireRole('HR_ADMIN', 'HR_REVIEWER'), async (req, res) => {
+router.patch('/:id/status', authenticate, requireRole('HR'), async (req, res) => {
   const docId = parseInt(req.params.id);
   const { status, reviewer_notes } = req.body;
 
@@ -253,7 +253,7 @@ router.patch('/:id/status', authenticate, requireRole('HR_ADMIN', 'HR_REVIEWER')
  * POST /api/documents/:id/verify
  * HR roles only — manually trigger AI verification for a specific document.
  */
-router.post('/:id/verify', authenticate, requireRole('HR_ADMIN', 'HR_REVIEWER'), async (req, res) => {
+router.post('/:id/verify', authenticate, requireRole('HR'), async (req, res) => {
   const docId = parseInt(req.params.id);
 
   try {
@@ -299,7 +299,7 @@ router.post('/:id/verify', authenticate, requireRole('HR_ADMIN', 'HR_REVIEWER'),
  * GET /api/documents/cases/:userId/logs
  * Fetch audit history for a candidate case.
  */
-router.get('/cases/:userId/logs', authenticate, requireRole('HR_ADMIN', 'HR_REVIEWER'), async (req, res) => {
+router.get('/cases/:userId/logs', authenticate, requireRole('HR'), async (req, res) => {
   const userId = parseInt(req.params.userId);
   try {
     const pool = await getPool();
