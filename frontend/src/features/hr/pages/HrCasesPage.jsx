@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { api } from '../../../api';
 import CaseDetailView from '../../hr-reviewer/components/CaseDetailView';
 
-// Reusing some helpers
 const getInitials = (name) => {
   if (!name) return '??';
   return name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
@@ -18,25 +17,25 @@ const getCaseStatus = (docs) => {
 
 const getStatusBadge = (status) => {
   switch(status) {
-    case 'verified': return <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-green-50 text-green-700 border border-green-200">ACTIVE</span>;
-    case 'flagged': return <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-error-container text-on-error-container border border-error/10">FLAGGED</span>;
-    case 'rejected': return <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-error-container text-on-error-container border border-error/10">REJECTED</span>;
+    case 'verified': return <span className="badge-success px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider">ACTIVE</span>;
+    case 'flagged': return <span className="badge-warning px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider">FLAGGED</span>;
+    case 'rejected': return <span className="badge-danger px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider">REJECTED</span>;
     case 'pending':
     case 'uploaded':
-    case 'ai_processing': return <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-secondary-container/20 text-on-secondary-container border border-secondary/10">PENDING APPROVAL</span>;
-    default: return <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-surface-variant text-on-surface-variant border border-outline-variant/30">DRAFT</span>;
+    case 'ai_processing': return <span className="badge-info px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider">PENDING APPROVAL</span>;
+    default: return <span className="badge-neutral px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider">DRAFT</span>;
   }
 };
 
 const getProgress = (docs) => {
-  if (!docs || docs.length === 0) return { percent: 0, color: 'bg-tertiary' };
+  if (!docs || docs.length === 0) return { percent: 0, color: 'bg-white/20' };
   const verified = docs.filter(d => d.status === 'verified').length;
   const flagged = docs.filter(d => d.status === 'flagged' || d.status === 'rejected').length;
   const percent = Math.round((verified / docs.length) * 100);
   
-  let color = 'bg-primary';
-  if (flagged > 0) color = 'bg-error';
-  else if (percent < 50) color = 'bg-tertiary';
+  let color = 'bg-primary shadow-[0_0_10px_rgba(24,86,255,0.6)]';
+  if (flagged > 0) color = 'bg-danger shadow-[0_0_10px_rgba(234,33,67,0.6)]';
+  else if (percent < 50) color = 'bg-info shadow-[0_0_10px_rgba(56,189,248,0.6)]';
   
   return { percent, color };
 };
@@ -47,7 +46,6 @@ const HrCasesPage = () => {
   const [activeView, setActiveView] = useState('LIST'); // LIST, DETAIL
   const [selectedCase, setSelectedCase] = useState(null);
 
-  // Filters
   const [departmentFilter, setDepartmentFilter] = useState('All Departments');
   const [statusFilter, setStatusFilter] = useState('All Statuses');
 
@@ -67,7 +65,6 @@ const HrCasesPage = () => {
     }
   };
 
-  /* Group documents by user to create "Cases" */
   const cases = useMemo(() => {
     const userMap = new Map();
     documents.forEach(doc => {
@@ -111,7 +108,6 @@ const HrCasesPage = () => {
     return ['All Departments', ...Array.from(set).sort()];
   }, [cases]);
 
-  // Document Handlers for Case Detail View
   const handleVerify = async (docId) => {
     try {
       await api(`/documents/${docId}/status`, { method: 'PATCH', body: { status: 'verified' } });
@@ -170,150 +166,160 @@ const HrCasesPage = () => {
   }
 
   return (
-    <div className="p-8">
+    <div className="text-white font-body pb-12 glass-animate-in">
       {/* Hero Header Section */}
       <div className="mb-10">
-        <h2 className="font-headline font-extrabold text-3xl text-on-surface tracking-tight mb-2">Case Management</h2>
-        <p className="text-on-surface-variant max-w-2xl">Orchestrate enterprise-wide onboarding flows and IT provisioning tasks from a single unified workspace.</p>
+        <h2 className="font-headline font-extrabold text-3xl tracking-tight mb-2 drop-shadow-sm">Case Management</h2>
+        <p className="text-white/60 max-w-2xl text-sm leading-relaxed">Orchestrate enterprise-wide onboarding flows and IT provisioning tasks from a single unified workspace.</p>
       </div>
 
       {/* KPI Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-        <div className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/15 flex flex-col shadow-sm">
-          <div className="flex justify-between items-start mb-4">
-            <span className="p-2 bg-primary-fixed-dim/30 text-primary rounded-lg material-symbols-outlined">assignment</span>
-            <span className="text-xs font-bold text-primary flex items-center gap-1">
+        <div className="glass-panel p-6 rounded-2xl flex flex-col shadow-[0_4px_30px_rgba(0,0,0,0.1)] relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-[40px] pointer-events-none -mr-10 -mt-10"></div>
+          <div className="flex justify-between items-start mb-4 relative z-10">
+            <span className="p-2.5 bg-primary/20 border border-primary/30 text-primary rounded-xl material-symbols-outlined shadow-[0_0_10px_rgba(24,86,255,0.2)]">assignment</span>
+            <span className="text-xs font-bold text-primary flex items-center gap-1 drop-shadow-sm">
               <span className="material-symbols-outlined text-xs">trending_up</span> +12%
             </span>
           </div>
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Total Cases This Month</p>
-          <h3 className="text-2xl font-bold font-headline text-on-surface">{cases.length}</h3>
+          <p className="text-[10px] font-bold text-white/50 uppercase tracking-[0.2em] mb-1 relative z-10">Total Cases</p>
+          <h3 className="text-3xl font-bold font-headline relative z-10 text-white">{cases.length}</h3>
         </div>
-        <div className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/15 flex flex-col shadow-sm">
-          <div className="flex justify-between items-start mb-4">
-            <span className="p-2 bg-secondary-container/20 text-secondary rounded-lg material-symbols-outlined">timer</span>
-            <span className="text-xs font-bold text-secondary flex items-center gap-1">
+        
+        <div className="glass-panel p-6 rounded-2xl flex flex-col shadow-[0_4px_30px_rgba(0,0,0,0.1)] relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-info/20 rounded-full blur-[40px] pointer-events-none -mr-10 -mt-10"></div>
+          <div className="flex justify-between items-start mb-4 relative z-10">
+            <span className="p-2.5 bg-info/20 border border-info/30 text-info rounded-xl material-symbols-outlined shadow-[0_0_10px_rgba(56,189,248,0.2)]">timer</span>
+            <span className="text-xs font-bold text-info flex items-center gap-1 drop-shadow-sm">
               <span className="material-symbols-outlined text-xs">keyboard_arrow_down</span> 4.2h
             </span>
           </div>
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Avg Time-to-Approval</p>
-          <h3 className="text-2xl font-bold font-headline text-on-surface">2.4 Days</h3>
+          <p className="text-[10px] font-bold text-white/50 uppercase tracking-[0.2em] mb-1 relative z-10">Avg Approval Time</p>
+          <h3 className="text-3xl font-bold font-headline relative z-10 text-white">2.4<span className="text-xl text-white/60 ml-1">Days</span></h3>
         </div>
-        <div className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/15 flex flex-col shadow-sm">
-          <div className="flex justify-between items-start mb-4">
-            <span className="p-2 bg-error-container/40 text-error rounded-lg material-symbols-outlined">document_scanner</span>
-            <span className="text-xs font-bold text-error flex items-center gap-1">
+
+        <div className="glass-panel p-6 rounded-2xl flex flex-col shadow-[0_4px_30px_rgba(0,0,0,0.1)] relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-danger/20 rounded-full blur-[40px] pointer-events-none -mr-10 -mt-10"></div>
+          <div className="flex justify-between items-start mb-4 relative z-10">
+            <span className="p-2.5 bg-danger/20 border border-danger/30 text-danger rounded-xl material-symbols-outlined shadow-[0_0_10px_rgba(234,33,67,0.2)]">document_scanner</span>
+            <span className="text-xs font-bold text-danger flex items-center gap-1 drop-shadow-sm">
               <span className="material-symbols-outlined text-xs">warning</span> +1.2%
             </span>
           </div>
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Doc Rejection Rate</p>
-          <h3 className="text-2xl font-bold font-headline text-on-surface">3.8%</h3>
+          <p className="text-[10px] font-bold text-white/50 uppercase tracking-[0.2em] mb-1 relative z-10">Doc Rejection Rate</p>
+          <h3 className="text-3xl font-bold font-headline relative z-10 text-white">3.8<span className="text-xl text-white/60 ml-1">%</span></h3>
         </div>
-        <div className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/15 flex flex-col shadow-sm">
-          <div className="flex justify-between items-start mb-4">
-            <span className="p-2 bg-tertiary-fixed/40 text-tertiary rounded-lg material-symbols-outlined">cloud_done</span>
-            <span className="text-xs font-bold text-tertiary flex items-center gap-1">
+
+        <div className="glass-panel p-6 rounded-2xl flex flex-col shadow-[0_4px_30px_rgba(0,0,0,0.1)] relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-success/20 rounded-full blur-[40px] pointer-events-none -mr-10 -mt-10"></div>
+          <div className="flex justify-between items-start mb-4 relative z-10">
+            <span className="p-2.5 bg-success/20 border border-success/30 text-success rounded-xl material-symbols-outlined shadow-[0_0_10px_rgba(7,202,107,0.2)]">cloud_done</span>
+            <span className="text-xs font-bold text-success flex items-center gap-1 drop-shadow-sm">
               <span className="material-symbols-outlined text-xs">verified</span> 99.8%
             </span>
           </div>
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Provisioning Success</p>
-          <h3 className="text-2xl font-bold font-headline text-on-surface">98.2%</h3>
+          <p className="text-[10px] font-bold text-white/50 uppercase tracking-[0.2em] mb-1 relative z-10">Provisioning Success</p>
+          <h3 className="text-3xl font-bold font-headline relative z-10 text-white">98.2<span className="text-xl text-white/60 ml-1">%</span></h3>
         </div>
       </div>
 
       {/* Table Container */}
-      <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/15 overflow-hidden shadow-sm">
+      <div className="glass-panel rounded-2xl overflow-hidden shadow-[0_4px_30px_rgba(0,0,0,0.1)]">
         
         {/* Filters & Bulk Actions */}
-        <div className="p-4 bg-surface-container-low/50 flex flex-wrap items-center justify-between gap-4 border-b border-slate-100">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-outline-variant/15 shadow-sm">
-              <span className="text-xs font-bold text-slate-400">Status:</span>
+        <div className="p-5 border-b border-white/[0.08] flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 glass-surface px-4 py-2 rounded-xl transition-all hover:bg-white/10">
+              <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Status:</span>
               <select 
                 value={statusFilter}
                 onChange={e => setStatusFilter(e.target.value)}
-                className="border-none text-xs font-semibold p-0 pr-6 focus:ring-0 bg-transparent cursor-pointer"
+                className="border-none text-xs font-semibold p-0 pr-6 focus:ring-0 bg-transparent text-white outline-none cursor-pointer [color-scheme:dark]"
               >
-                <option>All Statuses</option>
-                <option>Pending</option>
-                <option>Active</option>
-                <option>Flagged</option>
+                <option value="All Statuses" className="bg-slate-900">All Statuses</option>
+                <option value="Pending" className="bg-slate-900">Pending</option>
+                <option value="Active" className="bg-slate-900">Active</option>
+                <option value="Flagged" className="bg-slate-900">Flagged</option>
               </select>
             </div>
-            <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-outline-variant/15 shadow-sm">
-              <span className="text-xs font-bold text-slate-400">Dept:</span>
+            <div className="flex items-center gap-2 glass-surface px-4 py-2 rounded-xl transition-all hover:bg-white/10">
+              <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Dept:</span>
               <select 
                 value={departmentFilter}
                 onChange={e => setDepartmentFilter(e.target.value)}
-                className="border-none text-xs font-semibold p-0 pr-6 focus:ring-0 bg-transparent cursor-pointer"
+                className="border-none text-xs font-semibold p-0 pr-6 focus:ring-0 bg-transparent text-white outline-none cursor-pointer [color-scheme:dark]"
               >
-                {departments.map(d => <option key={d} value={d}>{d}</option>)}
+                {departments.map(d => <option key={d} value={d} className="bg-slate-900">{d}</option>)}
               </select>
             </div>
-            <button className="p-2 bg-white rounded-lg border border-outline-variant/15 text-slate-500 hover:text-primary transition-colors shadow-sm">
+            <button className="p-2 glass-surface rounded-xl text-white/60 hover:text-white hover:bg-white/10 transition-all cursor-pointer">
               <span className="material-symbols-outlined text-lg">calendar_today</span>
             </button>
           </div>
         </div>
 
         {/* Data Table */}
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto min-h-[400px]">
           {loading ? (
-            <div className="p-12 flex justify-center"><span className="material-symbols-outlined animate-spin text-primary text-3xl">sync</span></div>
+            <div className="p-16 flex flex-col items-center justify-center space-y-4">
+              <span className="material-symbols-outlined animate-spin text-primary text-4xl drop-shadow-[0_0_15px_rgba(24,86,255,0.8)]">sync</span>
+              <span className="text-white/60 text-sm font-medium">Synchronizing enterprise data...</span>
+            </div>
           ) : (
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-surface-container-low/30 border-b border-slate-100">
-                  <th className="px-6 py-4 w-12"><input type="checkbox" className="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary/20" /></th>
-                  <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-slate-500">Employee / Case ID</th>
-                  <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-slate-500">Department</th>
-                  <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-slate-500">Role</th>
-                  <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-slate-500">Status</th>
-                  <th className="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-slate-500 text-right">Progress</th>
+                <tr className="border-b border-white/[0.08]">
+                  <th className="px-6 py-4 w-12"><input type="checkbox" className="w-4 h-4 rounded border-white/20 bg-white/5 text-primary focus:ring-primary/50 focus:ring-offset-0" /></th>
+                  <th className="px-6 py-4 text-[10px] uppercase tracking-[0.2em] font-bold text-white/40">Employee / Case ID</th>
+                  <th className="px-6 py-4 text-[10px] uppercase tracking-[0.2em] font-bold text-white/40">Department</th>
+                  <th className="px-6 py-4 text-[10px] uppercase tracking-[0.2em] font-bold text-white/40">Role</th>
+                  <th className="px-6 py-4 text-[10px] uppercase tracking-[0.2em] font-bold text-white/40">Status</th>
+                  <th className="px-6 py-4 text-[10px] uppercase tracking-[0.2em] font-bold text-white/40 text-right">Progress</th>
                   <th className="px-6 py-4 w-16"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50">
+              <tbody className="divide-y divide-white/[0.04]">
                 {filteredCases.map(c => {
                   const { percent, color } = getProgress(c.documents);
                   return (
                     <tr 
                       key={c.user_id} 
-                      className="hover:bg-surface-container-low transition-colors cursor-pointer group"
+                      className="hover:bg-white/[0.04] transition-colors cursor-pointer group"
                       onClick={() => {
                         setSelectedCase(c);
                         setActiveView('DETAIL');
                       }}
                     >
                       <td className="px-6 py-4" onClick={e => e.stopPropagation()}>
-                        <input type="checkbox" className="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary/20" />
+                        <input type="checkbox" className="w-4 h-4 rounded border-white/20 bg-white/5 text-primary focus:ring-primary/50 focus:ring-offset-0" />
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-primary-container text-white flex items-center justify-center font-bold text-sm shadow-sm group-hover:ring-2 group-hover:ring-primary/20 transition-all">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-primary/20 border border-primary/30 text-primary flex items-center justify-center font-bold text-sm shadow-[0_0_10px_rgba(24,86,255,0.2)] group-hover:scale-105 transition-all">
                             {getInitials(c.user_name)}
                           </div>
                           <div>
-                            <p className="text-sm font-bold text-on-surface group-hover:text-primary transition-colors">{c.user_name}</p>
-                            <p className="text-[10px] font-mono text-slate-400">ID: CASE-{c.user_id + 8000}-X</p>
+                            <p className="text-sm font-bold text-white group-hover:text-primary transition-colors">{c.user_name}</p>
+                            <p className="text-[10px] font-mono text-white/40 mt-0.5">ID: CASE-{c.user_id + 8000}-X</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-on-surface-variant font-medium">{c.user_department || '—'}</td>
-                      <td className="px-6 py-4 text-sm text-on-surface-variant">{c.user_role?.replace('_', ' ') || 'Candidate'}</td>
+                      <td className="px-6 py-4 text-xs text-white/70 font-medium">{c.user_department || '—'}</td>
+                      <td className="px-6 py-4 text-xs text-white/70">{c.user_role?.replace('_', ' ') || 'Candidate'}</td>
                       <td className="px-6 py-4">
                         {getStatusBadge(c.status)}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-3">
-                          <div className="w-24 bg-surface-container-high h-2 rounded-full overflow-hidden">
+                          <div className="w-24 glass-surface border border-white/5 h-2 rounded-full overflow-hidden">
                             <div className={`${color} h-full rounded-full transition-all duration-1000`} style={{ width: `${percent}%` }}></div>
                           </div>
-                          <span className="text-[11px] font-bold text-slate-600 w-8 text-right">{percent}%</span>
+                          <span className="text-[11px] font-bold text-white/60 w-8 text-right font-mono">{percent}%</span>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <button className="text-slate-400 hover:text-primary transition-colors" onClick={e => e.stopPropagation()}>
+                        <button className="text-white/40 hover:text-white transition-colors" onClick={e => e.stopPropagation()}>
                           <span className="material-symbols-outlined">more_vert</span>
                         </button>
                       </td>
@@ -322,7 +328,7 @@ const HrCasesPage = () => {
                 })}
                 {filteredCases.length === 0 && !loading && (
                   <tr>
-                    <td colSpan="7" className="px-6 py-12 text-center text-slate-500 italic">No cases found matching the criteria.</td>
+                    <td colSpan="7" className="px-6 py-16 text-center text-white/40 italic text-sm">No cases found matching the criteria.</td>
                   </tr>
                 )}
               </tbody>
@@ -331,14 +337,14 @@ const HrCasesPage = () => {
         </div>
 
         {/* Footer Pagination */}
-        <div className="px-6 py-4 flex items-center justify-between bg-surface-container-low/20 border-t border-outline-variant/10">
-          <p className="text-xs text-slate-500">Showing <span className="font-bold text-on-surface">{filteredCases.length}</span> active cases</p>
+        <div className="px-6 py-4 flex items-center justify-between border-t border-white/[0.08]">
+          <p className="text-xs text-white/40">Showing <span className="font-bold text-white">{filteredCases.length}</span> active cases</p>
           <div className="flex gap-2">
-            <button className="p-1.5 rounded-lg border border-outline-variant/15 hover:bg-white text-slate-400 transition-all disabled:opacity-50" disabled>
+            <button className="p-1.5 rounded-lg glass-surface text-white/30 cursor-not-allowed border border-white/5">
               <span className="material-symbols-outlined text-sm">chevron_left</span>
             </button>
-            <button className="px-3 py-1 rounded-lg bg-primary text-white text-xs font-bold">1</button>
-            <button className="p-1.5 rounded-lg border border-outline-variant/15 hover:bg-white text-slate-400 transition-all disabled:opacity-50" disabled>
+            <button className="px-3 py-1 rounded-lg bg-primary text-white text-xs font-bold shadow-[0_0_10px_rgba(24,86,255,0.4)]">1</button>
+            <button className="p-1.5 rounded-lg glass-surface text-white/30 cursor-not-allowed border border-white/5">
               <span className="material-symbols-outlined text-sm">chevron_right</span>
             </button>
           </div>
