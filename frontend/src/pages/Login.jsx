@@ -23,7 +23,6 @@ const Login = () => {
     setB2cError(null);
     setB2cLoading(true);
     try {
-      // Switched to redirect method to avoid popup loops and bridge across ports
       await instance.loginRedirect(loginRequest);
     } catch (e) {
       console.error('B2C Redirect Error:', e);
@@ -48,58 +47,67 @@ const Login = () => {
   };
 
   return (
-    <div className="bg-background font-body text-on-background min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background Architectural Elements */}
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden font-body">
+      {/* Ambient gradient orbs */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary-fixed-dim/20 rounded-full blur-[120px]"></div>
-        <div className="absolute top-[20%] -right-[5%] w-[30%] h-[50%] bg-secondary-container/30 rounded-full blur-[100px]"></div>
-        <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-surface-container-low to-transparent opacity-50"></div>
+        <div className="absolute -top-[15%] -left-[10%] w-[45%] h-[45%] bg-primary/15 rounded-full blur-[140px] animate-pulse" style={{ animationDuration: '8s' }}></div>
+        <div className="absolute top-[30%] -right-[8%] w-[35%] h-[50%] bg-secondary/20 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '12s' }}></div>
+        <div className="absolute -bottom-[10%] left-[30%] w-[30%] h-[30%] bg-primary/8 rounded-full blur-[100px] animate-pulse" style={{ animationDuration: '10s' }}></div>
       </div>
 
-      {/* Auth Shell */}
-      <main className="w-full max-w-[1200px] grid md:grid-cols-2 gap-0 glass-panel shadow-2xl rounded-xl overflow-hidden relative z-10 border border-outline-variant/10 bg-white">
-        {/* Branding Side (Editorial Visual) */}
-        <div className="hidden md:flex flex-col justify-between p-12 bg-surface-container-low relative overflow-hidden">
+      {/* Auth Card */}
+      <main className="w-full max-w-[1100px] grid md:grid-cols-2 gap-0 glass-panel rounded-2xl overflow-hidden relative z-10 glass-animate-in">
+        {/* Branding Side */}
+        <div className="hidden md:flex flex-col justify-between p-12 relative overflow-hidden border-r border-white/[0.06]">
           <div className="relative z-10">
-            <div className="flex items-center gap-3 mb-12">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary-container rounded-lg flex items-center justify-center shadow-lg">
-                <span className="material-symbols-outlined text-white" style={{ fontVariationSettings: "'FILL' 1" }}>cloud_done</span>
+            <div className="flex items-center gap-3 mb-14">
+              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/25">
+                <span className="material-symbols-outlined text-white text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>cloud_done</span>
               </div>
-              <span className="text-2xl font-bold tracking-tight text-on-background">OnboardIQ</span>
+              <span className="text-2xl font-bold tracking-tight text-white font-headline">OnboardIQ</span>
             </div>
-            <h1 className="text-4xl lg:text-5xl font-medium leading-tight mb-6 text-on-surface">
-              Architecting the future of <span className="text-primary font-semibold">Enterprise Onboarding</span>.
+            <h1 className="text-4xl lg:text-[2.75rem] font-semibold leading-[1.15] mb-6 text-white tracking-tight">
+              Architecting the future of{' '}
+              <span className="text-primary">Enterprise Onboarding</span>.
             </h1>
-            <p className="text-on-surface-variant text-lg max-w-md">
-                Secure, scalable, and seamless identity management for the modern workforce.
+            <p className="text-white/50 text-base max-w-md leading-relaxed">
+              Secure, scalable, and seamless identity management for the modern workforce.
             </p>
           </div>
           <div className="relative z-10 mt-auto">
-            <div className="flex items-center gap-4 p-4 rounded-xl bg-surface-container-lowest/50 border border-outline-variant/15 max-w-sm">
-                <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>verified_user</span>
-                <span className="text-sm font-medium text-on-surface-variant">SOC2 Type II &amp; ISO 27001 Certified Environment</span>
+            <div className="flex items-center gap-4 p-4 rounded-xl glass-surface max-w-sm">
+              <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>verified_user</span>
+              <span className="text-sm font-medium text-white/60">SOC2 Type II & ISO 27001 Certified Environment</span>
             </div>
           </div>
-          <div className="absolute bottom-[-10%] right-[-10%] opacity-5">
-            <span className="material-symbols-outlined text-[300px]" style={{ fontWeight: 100 }}>hub</span>
+          {/* Subtle watermark */}
+          <div className="absolute bottom-[-10%] right-[-10%] opacity-[0.03]">
+            <span className="material-symbols-outlined text-[300px] text-white" style={{ fontWeight: 100 }}>hub</span>
           </div>
         </div>
 
         {/* Forms Side */}
-        <div className="flex flex-col bg-surface-container-lowest p-8 md:p-16">
+        <div className="flex flex-col p-8 md:p-14">
           <div className="w-full max-w-sm mx-auto">
             <header className="mb-10">
-              <h2 className="text-2xl font-semibold text-on-background mb-2">Sign In</h2>
-              <p className="text-on-surface-variant text-sm">Welcome back. Enter your credentials to access the Sovereign Cloud.</p>
+              {/* Mobile logo */}
+              <div className="flex items-center gap-3 mb-6 md:hidden">
+                <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center">
+                  <span className="material-symbols-outlined text-white text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>cloud_done</span>
+                </div>
+                <span className="text-xl font-bold tracking-tight text-white">OnboardIQ</span>
+              </div>
+              <h2 className="text-2xl font-semibold text-white mb-2">Sign In</h2>
+              <p className="text-white/40 text-sm">Welcome back. Enter your credentials to access the Sovereign Cloud.</p>
             </header>
 
-            {/* Azure AD B2C Enterprise SSO — Primary */}
+            {/* Azure AD B2C Enterprise SSO */}
             <div className="mb-8">
-              <p className="text-center text-xs font-medium text-on-surface-variant mb-4 uppercase tracking-widest">Enterprise SSO</p>
-              <button 
+              <p className="text-center text-[10px] font-semibold text-white/30 mb-4 uppercase tracking-[0.2em]">Enterprise SSO</p>
+              <button
                 onClick={handleB2CLogin}
                 disabled={b2cLoading}
-                className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-surface-container-lowest border border-outline-variant rounded-lg hover:bg-surface-container-low transition-colors group disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-3 px-4 py-3.5 glass-surface rounded-xl hover:bg-white/[0.06] transition-all duration-200 group disabled:opacity-40 cursor-pointer"
               >
                 <svg className="w-4 h-4" viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg">
                   <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
@@ -107,69 +115,70 @@ const Login = () => {
                   <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
                   <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
                 </svg>
-                <span className="text-sm font-medium text-on-surface">
+                <span className="text-sm font-medium text-white/80 group-hover:text-white transition-colors">
                   {b2cLoading ? 'Authenticating...' : 'Sign in with Microsoft Azure'}
                 </span>
               </button>
               {b2cError && (
-                <p className="mt-2 text-xs text-red-600 text-center">{b2cError}</p>
+                <p className="mt-3 text-xs text-danger text-center">{b2cError}</p>
               )}
             </div>
 
             {/* Divider */}
             <div className="relative mb-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-outline-variant/30"></div>
+                <div className="w-full border-t border-white/[0.08]"></div>
               </div>
               <div className="relative flex justify-center text-[10px]">
-                <span className="px-3 bg-surface-container-lowest text-on-surface-variant uppercase tracking-widest font-semibold">Development Login</span>
+                <span className="px-3 bg-[#0a0a12] text-white/30 uppercase tracking-[0.2em] font-semibold">Development Login</span>
               </div>
             </div>
 
             {/* Dev Mock Login */}
             <form className="space-y-6" onSubmit={handleLogin}>
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-on-surface-variant">Mock Role Selector</label>
+                <label className="block text-sm font-medium text-white/50">Mock Role Selector</label>
                 <div className="relative">
-                  <select 
+                  <select
                      value={role} onChange={(e) => setRole(e.target.value)}
-                     className="w-full px-4 py-3 bg-surface-container-low border border-outline-variant/30 rounded-lg focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all text-on-surface"
+                     className="w-full px-4 py-3.5 glass-surface rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary/50 outline-none transition-all text-white appearance-none cursor-pointer"
                   >
-                     <option value="NEW_HIRE">New Hire Profile (Alexander)</option>
-                     <option value="HR">HR Profile (Sarah Jenkins)</option>
-                     <option value="IT_ADMIN">IT Admin Profile (David Chen)</option>
+                     <option value="NEW_HIRE" className="bg-[#1a1a2e] text-white">New Hire Profile (Alexander)</option>
+                     <option value="HR" className="bg-[#1a1a2e] text-white">HR Profile (Sarah Jenkins)</option>
+                     <option value="IT_ADMIN" className="bg-[#1a1a2e] text-white">IT Admin Profile (David Chen)</option>
                   </select>
+                  <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-white/30 text-lg pointer-events-none">expand_more</span>
                 </div>
-                <p className="text-xs text-primary">Use this dropdown to simulate login into different roles during development.</p>
+                <p className="text-xs text-primary/70">Use this dropdown to simulate login into different roles during development.</p>
               </div>
-              
-              <button className="w-full kinetic-button bg-gradient-to-br from-primary to-primary-container text-white font-semibold py-3.5 rounded-lg shadow-md shadow-primary/20 flex items-center justify-center gap-2" type="submit">
+
+              <button
+                className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-3.5 rounded-xl shadow-lg shadow-primary/25 flex items-center justify-center gap-2 transition-all duration-200 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 cursor-pointer"
+                type="submit"
+              >
                 <span>Continue to Dashboard</span>
                 <span className="material-symbols-outlined text-sm">arrow_forward</span>
               </button>
               {devError && (
-                <p className="mt-3 text-xs text-red-600 text-center">{devError}</p>
-              )}
-              {devError && (
-                <p className="mt-3 text-xs text-red-600 text-center">{devError}</p>
+                <p className="mt-3 text-xs text-danger text-center">{devError}</p>
               )}
             </form>
           </div>
-          <footer className="mt-auto pt-12 flex justify-between items-center text-[10px] uppercase tracking-widest text-outline font-bold">
+          <footer className="mt-auto pt-12 flex justify-between items-center text-[10px] uppercase tracking-[0.15em] text-white/20 font-semibold">
             <span>© 2026 Sovereign Cloud</span>
             <div className="flex gap-4">
-               <a className="hover:text-on-surface" href="#">Privacy</a>
-               <a className="hover:text-on-surface" href="#">Terms</a>
+               <a className="hover:text-white/50 transition-colors" href="#">Privacy</a>
+               <a className="hover:text-white/50 transition-colors" href="#">Terms</a>
             </div>
           </footer>
         </div>
       </main>
 
-      {/* Support Floating Action */}
-      <div className="fixed bottom-8 right-8 z-50">
-        <button className="flex items-center gap-3 px-5 py-3 bg-surface-container-lowest shadow-xl shadow-on-background/5 border border-outline-variant/20 rounded-full hover:bg-surface transition-all group">
-          <span className="material-symbols-outlined text-secondary" style={{ fontVariationSettings: "'FILL' 0" }}>help</span>
-          <span className="text-sm font-semibold text-slate-500">System Status: <span className="text-green-600">Optimal</span></span>
+      {/* System Status FAB */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <button className="flex items-center gap-3 px-5 py-2.5 glass-elevated rounded-full hover:bg-white/[0.08] transition-all group">
+          <span className="material-symbols-outlined text-white/40 text-lg">help</span>
+          <span className="text-xs font-semibold text-white/40">System Status: <span className="text-success">Optimal</span></span>
         </button>
       </div>
     </div>
