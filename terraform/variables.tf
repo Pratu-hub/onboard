@@ -20,3 +20,33 @@ variable "acr_name" {
   type        = string
   default     = "onboardiqreg"
 }
+
+variable "db_password" {
+  description = "Database password"
+  type        = string
+  sensitive   = true
+}
+
+variable "firebase_private_key" {
+  description = "Firebase private key"
+  type        = string
+  sensitive   = true
+}
+
+variable "doc_intelligence_key" {
+  description = "Document Intelligence Key"
+  type        = string
+  sensitive   = true
+}
+
+variable "jwt_secret" {
+  description = "JWT Secret"
+  type        = string
+  sensitive   = true
+}
+
+variable "registry_password" {
+  description = "ACR Registry Password"
+  type        = string
+  sensitive   = true
+}
