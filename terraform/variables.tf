@@ -50,3 +50,26 @@ variable "registry_password" {
   type        = string
   sensitive   = true
 }
+
+variable "b2c_tenant" {
+  description = "B2C / CIAM Tenant Name (e.g. onboardiq)"
+  type        = string
+}
+
+variable "b2c_client_id" {
+  description = "B2C / CIAM Backend Client ID"
+  type        = string
+}
+
+variable "b2c_policy" {
+  description = "B2C Policy (e.g. B2C_1_susi)"
+  type        = string
+  default     = ""
+}
+
+variable "frontend_url" {
+  description = "Frontend FQDN for CORS"
+  type        = string
+  default     = ""
+}
+
