@@ -42,13 +42,15 @@ const DashboardLayout = ({ children }) => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="fixed top-0 w-full flex justify-between items-center px-8 h-16 bg-white/80 backdrop-blur-md z-50 border-b border-slate-100 shadow-sm">
-        <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/dashboard')}>
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+    <div className="min-h-screen font-body">
+      {/* Glass Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 mx-4 mt-3">
+        <div className="glass-elevated rounded-2xl flex justify-between items-center px-6 h-14 shadow-lg shadow-black/10">
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/dashboard')}>
+            <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center">
               <span className="material-symbols-outlined text-white text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>cloud</span>
             </div>
-            <span className="text-xl font-extrabold tracking-tighter text-slate-900 font-headline">OnboardIQ</span>
+            <span className="text-lg font-bold tracking-tight text-white font-headline">OnboardIQ</span>
             <nav className="hidden md:flex items-center gap-1 ml-6">
               {[
                 { label: 'Dashboard', path: '/dashboard/new-hire' },
@@ -59,10 +61,10 @@ const DashboardLayout = ({ children }) => {
                   <button
                     key={link.path}
                     onClick={() => navigate(link.path)}
-                    className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                    className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-200 ${
                       isActive
-                        ? 'text-primary bg-primary/5 font-semibold'
-                        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+                        ? 'text-primary bg-primary/10 font-semibold'
+                        : 'text-white/50 hover:text-white/80 hover:bg-white/[0.06]'
                     }`}
                   >
                     {link.label}
@@ -70,53 +72,54 @@ const DashboardLayout = ({ children }) => {
                 );
               })}
             </nav>
-        </div>
-        
-        <div className="flex items-center gap-4">
-          <span className="material-symbols-outlined text-slate-400 cursor-pointer hover:text-slate-600 transition-colors">notifications</span>
+          </div>
           
-          <div className="h-8 w-[1px] bg-slate-200 mx-1"></div>
-          
-          <div className="flex items-center gap-3 relative" ref={dropdownRef}>
-            <div className="text-right hidden sm:block">
-              <p className="text-sm font-bold text-slate-700 leading-tight">{user?.name || 'Alexander'}</p>
-              <p className="text-[10px] uppercase font-black text-slate-400 tracking-wider">{(user?.role || 'NEW_HIRE').replace('_', ' ')}</p>
-            </div>
-            <div 
-                className="cursor-pointer transition-transform hover:scale-105"
-                onClick={toggleDropdown}
-            >
-                <Avatar name={user?.name || 'Alexander'} size="md" />
-            </div>
-
-            {isDropdownOpen && (
-              <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 py-2 z-[60] animate-in fade-in slide-in-from-top-2 duration-200">
-                <div 
-                    className="px-4 py-2 hover:bg-slate-50 flex items-center gap-3 cursor-pointer group"
-                    onClick={() => {
-                        setIsDropdownOpen(false);
-                        navigate('/profile');
-                    }}
-                >
-                    <span className="material-symbols-outlined text-slate-400 group-hover:text-primary text-xl">account_circle</span>
-                    <span className="text-sm font-semibold text-slate-600 group-hover:text-slate-900">Account</span>
-                </div>
-                <div className="h-[1px] bg-slate-100 my-1 mx-2"></div>
-                <div 
-                    className="px-4 py-2 hover:bg-red-50 flex items-center gap-3 cursor-pointer group"
-                    onClick={handleLogout}
-                >
-                    <span className="material-symbols-outlined text-slate-400 group-hover:text-red-500 text-xl">logout</span>
-                    <span className="text-sm font-semibold text-slate-600 group-hover:text-red-600">Logout</span>
-                </div>
+          <div className="flex items-center gap-3">
+            <span className="material-symbols-outlined text-white/30 cursor-pointer hover:text-white/60 transition-colors text-xl">notifications</span>
+            
+            <div className="h-6 w-px bg-white/[0.08] mx-1"></div>
+            
+            <div className="flex items-center gap-3 relative" ref={dropdownRef}>
+              <div className="text-right hidden sm:block">
+                <p className="text-sm font-semibold text-white/80 leading-tight">{user?.name || 'Alexander'}</p>
+                <p className="text-[10px] uppercase font-bold text-white/30 tracking-wider">{(user?.role || 'NEW_HIRE').replace('_', ' ')}</p>
               </div>
-            )}
+              <div 
+                  className="cursor-pointer transition-transform hover:scale-105"
+                  onClick={toggleDropdown}
+              >
+                  <Avatar name={user?.name || 'Alexander'} size="md" />
+              </div>
+
+              {isDropdownOpen && (
+                <div className="absolute right-0 top-full mt-2 w-48 glass-elevated rounded-xl py-2 z-[60] glass-animate-in">
+                  <div 
+                      className="px-4 py-2.5 hover:bg-white/[0.06] flex items-center gap-3 cursor-pointer group transition-colors"
+                      onClick={() => {
+                          setIsDropdownOpen(false);
+                          navigate('/profile');
+                      }}
+                  >
+                      <span className="material-symbols-outlined text-white/40 group-hover:text-primary text-xl transition-colors">account_circle</span>
+                      <span className="text-sm font-semibold text-white/60 group-hover:text-white transition-colors">Account</span>
+                  </div>
+                  <div className="h-px bg-white/[0.06] my-1 mx-3"></div>
+                  <div 
+                      className="px-4 py-2.5 hover:bg-danger/10 flex items-center gap-3 cursor-pointer group transition-colors"
+                      onClick={handleLogout}
+                  >
+                      <span className="material-symbols-outlined text-white/40 group-hover:text-danger text-xl transition-colors">logout</span>
+                      <span className="text-sm font-semibold text-white/60 group-hover:text-danger transition-colors">Logout</span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="pt-20 px-4 sm:px-8 pb-12">
-        <div className="max-w-7xl mx-auto">
+      <main className="pt-24 px-4 sm:px-8 pb-12">
+        <div className="max-w-7xl mx-auto glass-animate-in">
           {children}
         </div>
       </main>
