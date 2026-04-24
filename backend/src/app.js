@@ -16,14 +16,14 @@ const app = express();
 // Security headers
 app.use(helmet());
 
-// CORS — allow frontend dev server
+// CORS — allow frontend (Production and Dev)
 app.use(cors({
   origin: [
     'http://localhost:5173',
     'http://localhost:5174',
     'http://localhost:5175',
-    'https://delightful-bush-033944810.7.azurestaticapps.net'
-  ],
+    process.env.FRONTEND_URL,
+  ].filter(Boolean),
   credentials: true,
 }));
 
