@@ -2,8 +2,27 @@ import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
+import { useMsal } from '@azure/msal-react';
+
 const ItAdminLayout = () => {
   const { user, logout } = useAuth();
+  const { instance } = useMsal();
+
+  const handleLogout = async () => {
+    logout();
+    try {
+      const accounts = instance.getAllAccounts();
+      if (accounts.length > 0) {
+        await instance.logoutRedirect({ 
+          account: accounts[0], 
+          postLogoutRedirectUri: window.location.origin + '/login' 
+        });
+        return;
+      }
+    } catch (e) {
+      console.error('Logout error:', e);
+    }
+  };
 
   return (
     <div className="text-white/90 font-body h-screen flex overflow-hidden bg-[#0a0a12]">
@@ -70,7 +89,7 @@ const ItAdminLayout = () => {
             <span className="material-symbols-outlined text-[20px]">support_agent</span>
             <span className="font-medium">Support</span>
           </a>
-          <button onClick={logout} className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-danger/70 hover:text-danger hover:bg-danger/10 transition-colors mt-2 text-left">
+          <button onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-danger/70 hover:text-danger hover:bg-danger/10 transition-colors mt-2 text-left">
             <span className="material-symbols-outlined text-[20px]">logout</span>
             <span className="font-medium">Sign Out</span>
           </button>
