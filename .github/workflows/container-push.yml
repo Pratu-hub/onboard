@@ -44,7 +44,8 @@ jobs:
       - name: Update Container Apps
         run: |
           REGISTRY=${{ steps.get-acr.outputs.registry }}
-          RG=${{ secrets.AZURE_RESOURCE_GROUP || 'onboardiq-rg' }}
+          RG="${{ secrets.AZURE_RESOURCE_GROUP }}"
+          RG="${RG:-onboardiq-rg}"
 
           echo "🔄 Updating backend container app..."
           az containerapp update \
