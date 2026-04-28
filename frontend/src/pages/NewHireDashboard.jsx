@@ -396,15 +396,12 @@ const NewHireDashboard = () => {
                                                         <span className="text-[10px] text-info font-bold mt-0.5">Awaiting verification</span>
                                                     </div>
                                                 )}
-                                                {doc.status === 'flagged' && (() => {
-                                                    const parsed = parseAiSummary(doc.ai_summary);
-                                                    return (
-                                                        <div className="flex flex-col">
-                                                            <span className="text-xs font-semibold text-white truncate max-w-[150px]">{doc.original_name || doc.filename}</span>
-                                                            <span className="text-[10px] text-warning font-bold mt-0.5 truncate max-w-[200px]">{parsed?.verdict || 'Needs review'}</span>
-                                                        </div>
-                                                    );
-                                                })()}
+                                                {doc.status === 'flagged' && (
+                                                    <div className="flex flex-col">
+                                                        <span className="text-xs font-semibold text-white truncate max-w-[150px]">{doc.original_name || doc.filename}</span>
+                                                        <span className="text-[10px] text-warning font-bold mt-0.5">Review Analysis Required</span>
+                                                    </div>
+                                                )}
                                                 {doc.status === 'rejected' && (
                                                     <div className="flex flex-col">
                                                         <span className="text-xs font-semibold text-white truncate max-w-[150px]">{doc.original_name || doc.filename}</span>

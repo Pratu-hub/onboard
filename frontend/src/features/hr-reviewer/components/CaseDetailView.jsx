@@ -163,22 +163,64 @@ const CaseDetailView = ({ currentCase, onBack, onVerify, onReject, onApproveAll 
               </div>
 
               {doc.ai_summary && (() => {
-                let verdict = doc.ai_summary;
-                try {
-                  const parsed = JSON.parse(doc.ai_summary);
-                  verdict = (parsed.aiSummary || '').split('|')[0].trim();
-                } catch { /* plain text, use as-is */ }
+                const parsed = (() => {
+                  try {
+                    const p = JSON.parse(doc.ai_summary);
+                    return {
+                      verdict: (p.aiSummary || '').split('|')[0].trim(),
+                      flags: p.crossVerification?.flags || [],
+                      confidence: p.crossVerification?.confidence ?? null,
+                      verified: p.crossVerification?.verified ?? null,
+                      isStructured: true
+                    };
+                  } catch {
+                    return { verdict: doc.ai_summary, flags: [], confidence: null, verified: null, isStructured: false };
+                  }
+                })();
+
                 return (
-                <div className={`p-3 rounded-lg mb-4 relative overflow-hidden ${doc.status === 'flagged' ? 'bg-amber-50 border border-amber-100' : 'bg-surface-container-low'}`}>
-                  {doc.status !== 'flagged' && (
-                    <div className="absolute top-0 right-0 p-1.5 text-primary opacity-50">
-                      <span className="material-symbols-outlined text-sm" style={{fontVariationSettings: "'FILL' 1"}}>auto_awesome</span>
+                  <div className={`p-4 rounded-xl mb-4 space-y-3 border ${doc.status === 'flagged' ? 'bg-warning/5 border-warning/20' : 'glass-surface border-white/5'}`}>
+                    {/* Verdict Header */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-primary text-xs" style={{fontVariationSettings: "'FILL' 1"}}>auto_awesome</span>
+                        <span className="text-[9px] font-bold text-white/40 uppercase tracking-widest">AI Analysis Report</span>
+                      </div>
+                      {parsed.confidence !== null && (
+                        <span className={`text-[10px] font-bold ${parsed.confidence >= 0.7 ? 'text-success' : parsed.confidence >= 0.4 ? 'text-warning' : 'text-danger'}`}>
+                          {Math.round(parsed.confidence * 100)}% Conf.
+                        </span>
+                      )}
                     </div>
-                  )}
-                  <p className={`text-xs leading-relaxed ${doc.status === 'flagged' ? 'text-amber-800' : 'text-on-surface-variant'} italic`}>
-                    {verdict}
-                  </p>
-                </div>
+                    
+                    <p className={`text-xs font-medium leading-relaxed ${doc.status === 'flagged' ? 'text-warning/90' : 'text-white/70'}`}>
+                      {parsed.verdict}
+                    </p>
+
+                    {/* Flags Breakdown */}
+                    {parsed.flags.length > 0 && (
+                      <div className="space-y-1.5 pt-1">
+                        {parsed.flags.map((flag, i) => (
+                          <div key={i} className="flex items-start gap-2 text-[10px] text-white/50 bg-white/5 p-2 rounded-lg">
+                            <span className="material-symbols-outlined text-[12px] mt-0.5" style={{color: flag.startsWith('⚠️') ? '#f59e0b' : flag.startsWith('✅') ? '#07ca6b' : '#94a3b8'}}>
+                              {flag.startsWith('⚠️') ? 'warning' : flag.startsWith('✅') ? 'check_circle' : 'info'}
+                            </span>
+                            <span>{flag.replace(/^[⚠️✅ℹ️]+\s*/, '')}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Identity Badge */}
+                    {parsed.isStructured && (
+                      <div className="flex items-center justify-between pt-1 border-t border-white/5">
+                        <span className="text-[9px] font-bold text-white/30 uppercase tracking-widest">System Cross-Check</span>
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${parsed.verified ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}`}>
+                          {parsed.verified ? 'IDENTITY MATCH' : 'DATA MISMATCH'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 );
               })()}
 
