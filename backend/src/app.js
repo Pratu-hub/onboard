@@ -10,6 +10,7 @@ const userRoutes = require('./routes/users');
 const documentRoutes = require('./routes/documents');
 const onboardingRoutes = require('./routes/onboarding');
 const hardwareRoutes = require('./routes/hardware');
+const systemRoutes = require('./routes/system');
 
 const app = express();
 
@@ -40,6 +41,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/documents', documentRoutes);
 app.use('/api/onboarding', onboardingRoutes);
 app.use('/api/hardware', hardwareRoutes);
+app.use('/api/system', systemRoutes);
 
 // 404 handler for unknown API routes
 app.use('/api/*', (req, res) => {

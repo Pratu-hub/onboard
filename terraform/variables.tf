@@ -12,13 +12,13 @@ variable "resource_group_name" {
 variable "location" {
   description = "Azure Region"
   type        = string
-  default     = "Central India"
+  default     = "eastasia"
 }
 
 variable "acr_name" {
   description = "Azure Container Registry Name"
   type        = string
-  default     = "onboardiqreg"
+  default     = "onboardteam"
 }
 
 variable "db_password" {
@@ -71,5 +71,11 @@ variable "frontend_url" {
   description = "Frontend FQDN for CORS"
   type        = string
   default     = ""
+}
+
+variable "openai_key" {
+  description = "Azure OpenAI API Key"
+  type        = string
+  sensitive   = true
 }
 

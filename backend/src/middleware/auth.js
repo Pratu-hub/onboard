@@ -37,7 +37,11 @@ function validateB2CToken(idToken) {
       getSigningKey,
       {
         audience: B2C_CLIENT_ID,
-        issuer: `https://${process.env.B2C_DIRECTORY_ID}.ciamlogin.com/${process.env.B2C_DIRECTORY_ID}/v2.0`,
+        issuer: [
+          `https://${process.env.B2C_DIRECTORY_ID}.ciamlogin.com/${process.env.B2C_DIRECTORY_ID}/v2.0`,
+          `https://${B2C_TENANT}.ciamlogin.com/${B2C_TENANT}.onmicrosoft.com/v2.0`,
+          `https://a0164170-e70e-42fe-98a6-e469d1a73851.ciamlogin.com/a0164170-e70e-42fe-98a6-e469d1a73851/v2.0`
+        ],
         algorithms: ['RS256'],
       },
       (err, decoded) => {

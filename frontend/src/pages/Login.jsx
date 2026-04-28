@@ -5,12 +5,10 @@ import { useMsal } from "@azure/msal-react";
 import { loginRequest } from "../authConfig";
 
 const Login = () => {
-  const { login, loginWithB2C, user } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const [role, setRole] = useState('NEW_HIRE');
   const [b2cLoading, setB2cLoading] = useState(false);
   const [b2cError, setB2cError] = useState(null);
-  const [devError, setDevError] = useState(null);
   const { instance } = useMsal();
 
   if (user) {
@@ -28,21 +26,6 @@ const Login = () => {
       console.error('B2C Redirect Error:', e);
       setB2cError("Azure AD B2C redirect failed. Ensure your tenant is configured correctly.");
       setB2cLoading(false);
-    }
-  };
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setDevError(null);
-    try {
-      await login(role);
-      navigate(
-        role === 'NEW_HIRE' ? '/profile'
-        : role === 'HR' ? '/dashboard/hr'
-        : '/dashboard/it-admin'
-      );
-    } catch (err) {
-      setDevError(err.message || 'Login failed');
     }
   };
 
@@ -124,45 +107,6 @@ const Login = () => {
               )}
             </div>
 
-            {/* Divider */}
-            <div className="relative mb-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-white/[0.08]"></div>
-              </div>
-              <div className="relative flex justify-center text-[10px]">
-                <span className="px-3 bg-[#0a0a12] text-white/30 uppercase tracking-[0.2em] font-semibold">Development Login</span>
-              </div>
-            </div>
-
-            {/* Dev Mock Login */}
-            <form className="space-y-6" onSubmit={handleLogin}>
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-white/50">Mock Role Selector</label>
-                <div className="relative">
-                  <select
-                     value={role} onChange={(e) => setRole(e.target.value)}
-                     className="w-full px-4 py-3.5 glass-surface rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary/50 outline-none transition-all text-white appearance-none cursor-pointer"
-                  >
-                     <option value="NEW_HIRE" className="bg-[#1a1a2e] text-white">New Hire Profile (Alexander)</option>
-                     <option value="HR" className="bg-[#1a1a2e] text-white">HR Profile (Sarah Jenkins)</option>
-                     <option value="IT_ADMIN" className="bg-[#1a1a2e] text-white">IT Admin Profile (David Chen)</option>
-                  </select>
-                  <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-white/30 text-lg pointer-events-none">expand_more</span>
-                </div>
-                <p className="text-xs text-primary/70">Use this dropdown to simulate login into different roles during development.</p>
-              </div>
-
-              <button
-                className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-3.5 rounded-xl shadow-lg shadow-primary/25 flex items-center justify-center gap-2 transition-all duration-200 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 cursor-pointer"
-                type="submit"
-              >
-                <span>Continue to Dashboard</span>
-                <span className="material-symbols-outlined text-sm">arrow_forward</span>
-              </button>
-              {devError && (
-                <p className="mt-3 text-xs text-danger text-center">{devError}</p>
-              )}
-            </form>
           </div>
           <footer className="mt-auto pt-12 flex justify-between items-center text-[10px] uppercase tracking-[0.15em] text-white/20 font-semibold">
             <span>© 2026 Sovereign Cloud</span>
