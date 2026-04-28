@@ -244,32 +244,12 @@ const NewHireDashboard = () => {
                             <div className="flex justify-between items-end">
                                 <div>
                                     <h1 className="text-3xl font-extrabold font-headline tracking-tight text-white">Document Upload Dashboard</h1>
-                                    <p className="text-sm text-white/60 mt-1">Reviewing Case <span className="font-bold text-white">#CASE-8492</span> • Candidate: <span className="font-bold text-white">{user?.name || 'Jordan Miller'}</span></p>
-                                </div>
-                                <div className="text-right">
-                                    <span className="text-4xl font-black text-primary font-headline drop-shadow-md">{progressPercent}%</span>
-                                    <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] mt-1">Total Completion</p>
-                                </div>
-                            </div>
-                            <div className="w-full glass-surface h-3 rounded-full overflow-hidden border border-white/[0.05]">
-                                <div className="bg-primary h-full rounded-full transition-all duration-1000 shadow-[0_0_15px_rgba(24,86,255,0.6)]" style={{ width: `${progressPercent}%` }}></div>
-                            </div>
-                            <div className="flex flex-wrap gap-6 text-xs font-bold font-label uppercase tracking-wider pt-2">
-                                <div className="flex items-center gap-2 text-white/80">
-                                    <span className="w-2.5 h-2.5 rounded-full bg-success shadow-[0_0_8px_rgba(7,202,107,0.8)]"></span> {verifiedCount} Verified
-                                </div>
-                                <div className="flex items-center gap-2 text-white/80">
-                                    <span className="w-2.5 h-2.5 rounded-full bg-info shadow-[0_0_8px_rgba(56,189,248,0.8)] animate-pulse"></span> {processingCount} In Progress
-                                </div>
-                                <div className="flex items-center gap-2 text-white/80">
-                                    <span className="w-2.5 h-2.5 rounded-full bg-danger shadow-[0_0_8px_rgba(234,33,67,0.8)]"></span> {flaggedCount} Flagged
-                                </div>
-                                <div className="flex items-center gap-2 text-white/80">
-                                    <span className="w-2.5 h-2.5 rounded-full bg-white/20"></span> {pendingCount} Pending
+                                    <p className="text-sm text-white/60 mt-1">Onboarding Portal <span className="material-symbols-outlined text-[10px] align-middle mx-1">chevron_right</span> Candidate: <span className="font-bold text-white">{user?.name || 'Jordan Miller'}</span></p>
                                 </div>
                             </div>
                         </div>
                     </div>
+
 
                     {/* Security Card */}
                     <div className="glass-panel p-6 rounded-2xl flex flex-col justify-between">
