@@ -41,10 +41,21 @@ jobs:
           docker build -t ${{ steps.get-acr.outputs.registry }}/onboard-frontend:latest ./frontend
           docker push ${{ steps.get-acr.outputs.registry }}/onboard-frontend:latest
 
-      - name: Update Kubernetes Manifests (Optional)
+      - name: Update Container Apps
         run: |
-          # This step would typically use 'kubectl set image' or update the YAMLs
-          # For Review II, we'll just log that the images are updated
-          echo "✅ Images pushed to ${{ steps.get-acr.outputs.registry }}"
-          echo "Backend: ${{ steps.get-acr.outputs.registry }}/onboard-backend:latest"
-          echo "Frontend: ${{ steps.get-acr.outputs.registry }}/onboard-frontend:latest"
+          REGISTRY=${{ steps.get-acr.outputs.registry }}
+          RG=${{ secrets.AZURE_RESOURCE_GROUP || 'onboardiq-rg' }}
+
+          echo "🔄 Updating backend container app..."
+          az containerapp update \
+            --name onboard-backend \
+            --resource-group $RG \
+            --image $REGISTRY/onboard-backend:latest
+
+          echo "🔄 Updating frontend container app..."
+          az containerapp update \
+            --name onboard-frontend \
+            --resource-group $RG \
+            --image $REGISTRY/onboard-frontend:latest
+
+          echo "✅ Container Apps updated with latest images"
