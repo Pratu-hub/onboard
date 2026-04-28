@@ -9,3 +9,6 @@ backend/uploads/
 backend/data/
 
 .worktrees/
+.terraform/
+terraform.tfstate*
+*.tfvars

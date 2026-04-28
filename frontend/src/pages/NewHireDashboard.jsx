@@ -68,17 +68,14 @@ const NewHireDashboard = () => {
         }
 
         try {
-            // Set status to uploading and init progress at 0
             setDocuments(prev => prev.map(d =>
                 d.doc_type === currentDocType ? { ...d, status: 'uploading' } : d
             ));
             setUploadProgress(prev => ({ ...prev, [currentDocType]: 0 }));
 
-            // Step 1: Get SAS URL
             const sasData = await api(`/documents/generate-sas?filename=${encodeURIComponent(file.name)}&doc_type=${currentDocType}&content_type=${encodeURIComponent(file.type)}`);
             const { uploadUrl, blobName, docType } = sasData;
 
-            // Step 2: Upload with real progress tracking via XMLHttpRequest
             await new Promise((resolve, reject) => {
                 const xhr = new XMLHttpRequest();
 
@@ -105,7 +102,6 @@ const NewHireDashboard = () => {
                 xhr.send(file);
             });
 
-            // Step 3: Confirm upload
             setDocuments(prev => prev.map(d =>
                 d.doc_type === currentDocType ? { ...d, status: 'ai_processing' } : d
             ));
@@ -116,14 +112,12 @@ const NewHireDashboard = () => {
                 body: JSON.stringify({ blobName, originalName: file.name, docType }),
             });
 
-            // Step 4: Refresh documents to get the latest state from backend
             await fetchDocuments();
         } catch (error) {
             console.error('Upload failed:', error);
             alert('Upload failed: ' + error.message);
             await fetchDocuments();
         } finally {
-            // Cleanup progress after a short delay so user sees 100%
             setTimeout(() => {
                 setUploadProgress(prev => {
                     const next = { ...prev };
@@ -198,7 +192,7 @@ const NewHireDashboard = () => {
         }
     };
 
-    if (loading) return <div className="p-8 text-center text-on-surface">Initializing Compliance Dashboard...</div>;
+    if (loading) return <div className="p-8 text-center text-white/50 glass-animate-in">Initializing Compliance Dashboard...</div>;
 
     const verifiedCount = documents.filter(d => d.status === 'verified').length;
     const processingCount = documents.filter(d => ['ai_processing', 'uploaded', 'uploading'].includes(d.status)).length;
@@ -207,96 +201,97 @@ const NewHireDashboard = () => {
     const progressPercent = Math.round((verifiedCount / 5) * 100);
 
     return (
-        <div className="bg-surface font-body text-on-surface antialiased min-h-screen">
-            {/* Hidden File Input */}
+        <div className="font-body text-white antialiased min-h-screen pb-12 glass-animate-in">
             <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileChange} accept=".pdf,.jpg,.jpeg,.png" />
 
-
-
-            <main className="w-full px-8 py-6 max-w-[1600px] mx-auto">
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-                    <div className="lg:col-span-3 bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/10 shadow-[0_4px_20px_rgba(28,27,27,0.04)] flex flex-col md:flex-row items-center gap-8">
+            <main className="w-full max-w-[1600px] mx-auto space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                    {/* Main Header Card */}
+                    <div className="lg:col-span-3 glass-panel p-6 rounded-2xl flex flex-col md:flex-row items-center gap-8">
                         <div className="flex-1 space-y-4 w-full">
                             <div className="flex justify-between items-end">
                                 <div>
-                                    <h1 className="text-2xl font-extrabold font-headline tracking-tight text-on-surface">Document Upload Dashboard</h1>
-                                    <p className="text-sm text-on-surface-variant mt-1">Reviewing Case <span className="font-bold">#CASE-8492</span> • Candidate: <span className="font-bold">{user?.name || 'Jordan Miller'}</span></p>
+                                    <h1 className="text-3xl font-extrabold font-headline tracking-tight text-white">Document Upload Dashboard</h1>
+                                    <p className="text-sm text-white/60 mt-1">Reviewing Case <span className="font-bold text-white">#CASE-8492</span> • Candidate: <span className="font-bold text-white">{user?.name || 'Jordan Miller'}</span></p>
                                 </div>
                                 <div className="text-right">
-                                    <span className="text-3xl font-black text-primary font-headline">{progressPercent}%</span>
-                                    <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Total Completion</p>
+                                    <span className="text-4xl font-black text-primary font-headline drop-shadow-md">{progressPercent}%</span>
+                                    <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] mt-1">Total Completion</p>
                                 </div>
                             </div>
-                            <div className="w-full bg-surface-container-high h-3 rounded-full overflow-hidden">
-                                <div className="bg-gradient-to-r from-[#005faa] to-[#0078d4] h-full rounded-full transition-all duration-1000" style={{ width: `${progressPercent}%` }}></div>
+                            <div className="w-full glass-surface h-3 rounded-full overflow-hidden border border-white/[0.05]">
+                                <div className="bg-primary h-full rounded-full transition-all duration-1000 shadow-[0_0_15px_rgba(24,86,255,0.6)]" style={{ width: `${progressPercent}%` }}></div>
                             </div>
-                            <div className="flex gap-6 text-xs font-bold font-label uppercase tracking-tighter">
-                                <div className="flex items-center gap-1.5 text-secondary">
-                                    <span className="w-2 h-2 rounded-full bg-secondary"></span> {verifiedCount} Verified
+                            <div className="flex flex-wrap gap-6 text-xs font-bold font-label uppercase tracking-wider pt-2">
+                                <div className="flex items-center gap-2 text-white/80">
+                                    <span className="w-2.5 h-2.5 rounded-full bg-success shadow-[0_0_8px_rgba(7,202,107,0.8)]"></span> {verifiedCount} Verified
                                 </div>
-                                <div className="flex items-center gap-1.5 text-primary">
-                                    <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span> {processingCount} In Progress
+                                <div className="flex items-center gap-2 text-white/80">
+                                    <span className="w-2.5 h-2.5 rounded-full bg-info shadow-[0_0_8px_rgba(56,189,248,0.8)] animate-pulse"></span> {processingCount} In Progress
                                 </div>
-                                <div className="flex items-center gap-1.5 text-error">
-                                    <span className="w-2 h-2 rounded-full bg-error"></span> {flaggedCount} Flagged
+                                <div className="flex items-center gap-2 text-white/80">
+                                    <span className="w-2.5 h-2.5 rounded-full bg-danger shadow-[0_0_8px_rgba(234,33,67,0.8)]"></span> {flaggedCount} Flagged
                                 </div>
-                                <div className="flex items-center gap-1.5 text-outline">
-                                    <span className="w-2 h-2 rounded-full bg-outline"></span> {pendingCount} Pending
+                                <div className="flex items-center gap-2 text-white/80">
+                                    <span className="w-2.5 h-2.5 rounded-full bg-white/20"></span> {pendingCount} Pending
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-surface-container-lowest p-5 rounded-xl border border-outline-variant/10 shadow-[0_4px_20px_rgba(28,27,27,0.04)] flex flex-col justify-between">
-                        <div className="flex items-center gap-2 text-tertiary mb-3">
-                            <span className="material-symbols-outlined text-lg">verified_user</span>
-                            <span className="text-[10px] font-bold uppercase tracking-widest">Security Protocol</span>
+
+                    {/* Security Card */}
+                    <div className="glass-panel p-6 rounded-2xl flex flex-col justify-between">
+                        <div className="flex items-center gap-3 text-white mb-4">
+                            <span className="material-symbols-outlined text-xl text-success drop-shadow-[0_0_5px_rgba(7,202,107,0.5)]">verified_user</span>
+                            <span className="text-xs font-bold uppercase tracking-[0.2em]">Security Protocol</span>
                         </div>
                         <div className="space-y-3">
                             {['AES-256 Storage', 'Malware Scanning', 'Azure Tenant Lock'].map((item) => (
-                                <div key={item} className="flex items-center justify-between">
-                                    <span className="text-xs text-on-surface-variant">{item}</span>
-                                    <span className="material-symbols-outlined text-green-600 text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                                <div key={item} className="flex items-center justify-between glass-surface px-3 py-2 rounded-lg">
+                                    <span className="text-[11px] font-semibold text-white/80">{item}</span>
+                                    <span className="material-symbols-outlined text-success text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
                                 </div>
                             ))}
                         </div>
                         <div className="flex gap-2 mt-4">
-                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-surface-container-high border border-outline-variant/20 font-bold">ISO 27001</span>
-                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-surface-container-high border border-outline-variant/20 font-bold">GDPR</span>
+                            <span className="text-[9px] px-2 py-1 rounded-md glass-surface text-white/60 font-bold tracking-wider">ISO 27001</span>
+                            <span className="text-[9px] px-2 py-1 rounded-md glass-surface text-white/60 font-bold tracking-wider">GDPR</span>
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/20 shadow-[0_4px_20px_rgba(28,27,27,0.04)] overflow-hidden">
-                    <div className="px-6 py-4 border-b border-outline-variant/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                            <div className="relative">
-                                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">search</span>
-                                <input className="pl-10 pr-4 py-1.5 text-sm rounded-lg border-outline-variant/30 focus:ring-primary focus:border-primary w-64 bg-surface-container-low/50" placeholder="Filter documents..." type="text" />
+                {/* Documents Table */}
+                <div className="glass-panel rounded-2xl overflow-hidden">
+                    <div className="px-6 py-5 border-b border-white/[0.08] flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="flex items-center gap-4 w-full md:w-auto">
+                            <div className="relative flex-1 md:flex-none">
+                                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-white/40 text-lg">search</span>
+                                <input className="pl-10 pr-4 py-2 text-sm rounded-xl border border-white/[0.08] focus:ring-1 focus:ring-primary/50 focus:border-primary/50 w-full md:w-64 glass-surface text-white placeholder:text-white/30 outline-none transition-all" placeholder="Filter documents..." type="text" />
                             </div>
-                            <div className="flex items-center gap-2">
-                                <button className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold border border-outline-variant/30 rounded-lg hover:bg-surface-container-low transition-colors">
+                            <div className="flex items-center gap-2 hidden md:flex">
+                                <button className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold border border-white/[0.1] rounded-xl hover:bg-white/[0.06] transition-colors text-white/70">
                                     <span className="material-symbols-outlined text-sm">filter_list</span> Status
                                 </button>
-                                <button className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold border border-outline-variant/30 rounded-lg hover:bg-surface-container-low transition-colors">
+                                <button className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold border border-white/[0.1] rounded-xl hover:bg-white/[0.06] transition-colors text-white/70">
                                     <span className="material-symbols-outlined text-sm">sort</span> Latest
                                 </button>
                             </div>
                         </div>
-                        <span className="text-xs font-medium text-on-surface-variant">Displaying 5 Document Requirements</span>
+                        <span className="text-[11px] font-bold text-white/40 uppercase tracking-widest hidden md:block">5 Requirements</span>
                     </div>
 
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="bg-surface-container-low/30 border-b border-outline-variant/10">
-                                    <th className="px-6 py-4 text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Document Name</th>
-                                    <th className="px-6 py-4 text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Status</th>
-                                    <th className="px-6 py-4 text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Formats</th>
-                                    <th className="px-6 py-4 text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">File Info</th>
-                                    <th className="px-6 py-4 text-[11px] font-bold text-on-surface-variant uppercase tracking-wider text-right">Actions</th>
+                                <tr className="border-b border-white/[0.06]">
+                                    <th className="px-6 py-4 text-[10px] font-bold text-white/40 uppercase tracking-[0.15em]">Document Name</th>
+                                    <th className="px-6 py-4 text-[10px] font-bold text-white/40 uppercase tracking-[0.15em]">Status</th>
+                                    <th className="px-6 py-4 text-[10px] font-bold text-white/40 uppercase tracking-[0.15em]">Formats</th>
+                                    <th className="px-6 py-4 text-[10px] font-bold text-white/40 uppercase tracking-[0.15em]">File Info</th>
+                                    <th className="px-6 py-4 text-[10px] font-bold text-white/40 uppercase tracking-[0.15em] text-right">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-outline-variant/5">
+                            <tbody className="divide-y divide-white/[0.04]">
                                 {documents.map((doc) => {
                                     const meta = getDocMeta(doc.doc_type);
                                     const isUploading = doc.status === 'uploading';
@@ -307,98 +302,97 @@ const NewHireDashboard = () => {
                                     const hasFile = doc.filename && typeof doc.id === 'number';
 
                                     return (
-                                        <tr key={doc.id} className={`hover:bg-surface-container-low transition-colors ${isUploading || isProcessing ? 'bg-primary/5' : ''}`}>
+                                        <tr key={doc.id} className={`hover:bg-white/[0.03] transition-colors ${isUploading || isProcessing ? 'bg-primary/[0.03]' : ''}`}>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
-                                                    <span className={`material-symbols-outlined ${isPending ? 'text-on-surface-variant' : 'text-primary'}`}>{meta.icon}</span>
-                                                    <span className={`font-bold text-sm ${isPending ? 'text-on-surface-variant' : 'text-on-surface'}`}>{meta.title}</span>
+                                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isPending ? 'bg-white/5 text-white/40' : 'bg-primary/20 text-primary border border-primary/30 shadow-[0_0_10px_rgba(24,86,255,0.2)]'}`}>
+                                                        <span className="material-symbols-outlined text-[18px]">{meta.icon}</span>
+                                                    </div>
+                                                    <span className={`font-semibold text-sm ${isPending ? 'text-white/60' : 'text-white'}`}>{meta.title}</span>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                {isVerified && <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-secondary-container text-on-secondary-container">Verified</span>}
+                                                {isVerified && <span className="badge-success px-2.5 py-1 rounded-md text-[9px] font-bold uppercase tracking-wider">Verified</span>}
                                                 {isUploading && (
-                                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-primary-container text-on-primary-container gap-1 w-fit">
+                                                    <span className="badge-info px-2.5 py-1 rounded-md text-[9px] font-bold uppercase tracking-wider flex items-center gap-1.5 w-fit">
                                                         <span className="material-symbols-outlined text-[10px] animate-spin">refresh</span>
                                                         Uploading {progress}%
                                                     </span>
                                                 )}
                                                 {isProcessing && (
-                                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-primary-container text-on-primary-container gap-1 w-fit">
+                                                    <span className="badge-info px-2.5 py-1 rounded-md text-[9px] font-bold uppercase tracking-wider flex items-center gap-1.5 w-fit">
                                                         <span className="material-symbols-outlined text-[10px] animate-spin">refresh</span>
                                                         Processing
                                                     </span>
                                                 )}
                                                 {doc.status === 'flagged' && (
-                                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-error-container text-on-error-container gap-1 w-fit" title={doc.ai_summary}>
+                                                    <span className="badge-warning px-2.5 py-1 rounded-md text-[9px] font-bold uppercase tracking-wider flex items-center gap-1.5 w-fit" title={doc.ai_summary}>
                                                         <span className="material-symbols-outlined text-[10px]">warning</span>
                                                         Flagged
                                                     </span>
                                                 )}
                                                 {doc.status === 'rejected' && (
-                                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-error text-white gap-1 w-fit" title={doc.ai_summary}>
+                                                    <span className="badge-danger px-2.5 py-1 rounded-md text-[9px] font-bold uppercase tracking-wider flex items-center gap-1.5 w-fit" title={doc.ai_summary}>
                                                         <span className="material-symbols-outlined text-[10px]">error</span>
                                                         Re-upload Needed
                                                     </span>
                                                 )}
-                                                {isPending && <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-surface-variant text-on-surface-variant">Pending</span>}
+                                                {isPending && <span className="badge-neutral px-2.5 py-1 rounded-md text-[9px] font-bold uppercase tracking-wider">Pending</span>}
                                             </td>
-                                            <td className="px-6 py-4 text-xs text-on-surface-variant font-medium">{meta.formats}</td>
+                                            <td className="px-6 py-4 text-[11px] text-white/50 font-medium">{meta.formats}</td>
                                             <td className="px-6 py-4">
                                                 {isVerified && (
                                                     <div className="flex flex-col">
-                                                        <span className="text-xs font-bold text-on-surface">{doc.original_name || doc.filename}</span>
-                                                        <span className="text-[10px] text-on-surface-variant">Uploaded recently</span>
+                                                        <span className="text-xs font-semibold text-white truncate max-w-[150px]">{doc.original_name || doc.filename}</span>
+                                                        <span className="text-[10px] text-white/40 mt-0.5 font-mono">Verified</span>
                                                     </div>
                                                 )}
                                                 {isUploading && (
-                                                    <div className="space-y-1">
-                                                        <div className="w-32 bg-surface-container-high h-1.5 rounded-full overflow-hidden">
-                                                            <div
-                                                                className="bg-gradient-to-r from-[#005faa] to-[#0078d4] h-full rounded-full transition-all duration-300"
-                                                                style={{ width: `${progress}%` }}
-                                                            ></div>
+                                                    <div className="space-y-1.5">
+                                                        <div className="w-32 glass-surface h-1.5 rounded-full overflow-hidden border border-white/[0.05]">
+                                                            <div className="bg-primary h-full rounded-full transition-all duration-300" style={{ width: `${progress}%` }}></div>
                                                         </div>
                                                         <span className="text-[10px] text-primary font-bold">Uploading file...</span>
                                                     </div>
                                                 )}
                                                 {isProcessing && (
                                                     <div className="flex flex-col">
-                                                        <span className="text-xs font-bold text-on-surface">{doc.original_name || doc.filename}</span>
-                                                        <span className="text-[10px] text-primary font-bold">Awaiting verification</span>
+                                                        <span className="text-xs font-semibold text-white truncate max-w-[150px]">{doc.original_name || doc.filename}</span>
+                                                        <span className="text-[10px] text-info font-bold mt-0.5">Awaiting verification</span>
                                                     </div>
                                                 )}
                                                 {doc.status === 'flagged' && (
                                                     <div className="flex flex-col">
-                                                        <span className="text-xs font-bold text-on-surface">{doc.original_name || doc.filename}</span>
-                                                        <span className="text-[10px] text-error font-bold">{doc.ai_summary || 'Needs review'}</span>
+                                                        <span className="text-xs font-semibold text-white truncate max-w-[150px]">{doc.original_name || doc.filename}</span>
+                                                        <span className="text-[10px] text-warning font-bold mt-0.5 truncate max-w-[200px]">{doc.ai_summary || 'Needs review'}</span>
                                                     </div>
                                                 )}
                                                 {doc.status === 'rejected' && (
                                                     <div className="flex flex-col">
-                                                        <span className="text-xs font-bold text-on-surface">{doc.original_name || doc.filename}</span>
-                                                        <span className="text-[10px] text-error font-bold">File unreadable. Please re-upload.</span>
+                                                        <span className="text-xs font-semibold text-white truncate max-w-[150px]">{doc.original_name || doc.filename}</span>
+                                                        <span className="text-[10px] text-danger font-bold mt-0.5">File unreadable. Re-upload.</span>
                                                     </div>
                                                 )}
-                                                {isPending && <span className="text-xs text-on-surface-variant italic">No file selected</span>}
+                                                {isPending && <span className="text-[11px] text-white/30 font-mono italic">No file selected</span>}
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 <div className="flex justify-end gap-2">
                                                     {isVerified ? (
                                                         <>
-                                                            <button className="text-primary hover:bg-primary/5 p-2 rounded transition-colors" title="View Document" onClick={() => handleViewDocument(doc)}><span className="material-symbols-outlined text-lg">visibility</span></button>
-                                                            <button className="text-on-surface-variant hover:bg-surface-container-high p-2 rounded transition-colors" title="Replace" onClick={() => handleUploadClick(doc.doc_type)}><span className="material-symbols-outlined text-lg">sync</span></button>
+                                                            <button className="text-white hover:text-primary glass-surface hover:bg-white/10 p-2 rounded-xl transition-all border-none" title="View Document" onClick={() => handleViewDocument(doc)}><span className="material-symbols-outlined text-lg">visibility</span></button>
+                                                            <button className="text-white/60 hover:text-white glass-surface hover:bg-white/10 p-2 rounded-xl transition-all border-none" title="Replace" onClick={() => handleUploadClick(doc.doc_type)}><span className="material-symbols-outlined text-lg">sync</span></button>
                                                         </>
                                                     ) : isUploading ? (
-                                                        <span className="text-primary text-xs font-bold uppercase tracking-widest px-3 py-1">{progress}%</span>
+                                                        <span className="text-primary text-xs font-bold uppercase tracking-[0.2em] px-3 py-1">{progress}%</span>
                                                     ) : isProcessing ? (
                                                         <>
                                                             {hasFile && (
-                                                                <button className="text-primary hover:bg-primary/5 p-2 rounded transition-colors" title="View Document" onClick={() => handleViewDocument(doc)}><span className="material-symbols-outlined text-lg">visibility</span></button>
+                                                                <button className="text-white hover:text-primary glass-surface hover:bg-white/10 p-2 rounded-xl transition-all border-none" title="View Document" onClick={() => handleViewDocument(doc)}><span className="material-symbols-outlined text-lg">visibility</span></button>
                                                             )}
-                                                            <button className="text-on-surface-variant hover:bg-surface-container-high p-2 rounded transition-colors" title="Re-upload" onClick={() => handleUploadClick(doc.doc_type)}><span className="material-symbols-outlined text-lg">sync</span></button>
+                                                            <button className="text-white/60 hover:text-white glass-surface hover:bg-white/10 p-2 rounded-xl transition-all border-none" title="Re-upload" onClick={() => handleUploadClick(doc.doc_type)}><span className="material-symbols-outlined text-lg">sync</span></button>
                                                         </>
                                                     ) : (
-                                                        <button className="text-primary text-xs font-bold uppercase tracking-widest hover:underline px-3 py-1" onClick={() => handleUploadClick(doc.doc_type)}>Upload File</button>
+                                                        <button className="text-primary text-[10px] font-bold uppercase tracking-[0.1em] hover:text-white bg-primary/10 hover:bg-primary/30 border border-primary/30 px-4 py-2 rounded-lg transition-colors cursor-pointer" onClick={() => handleUploadClick(doc.doc_type)}>Upload File</button>
                                                     )}
                                                 </div>
                                             </td>
@@ -408,39 +402,27 @@ const NewHireDashboard = () => {
                             </tbody>
                         </table>
                     </div>
-                    <div className="px-6 py-4 bg-surface-container-low/10 border-t border-outline-variant/10">
-                        <p className="text-[10px] text-on-surface-variant font-medium flex items-center gap-1">
-                            <span className="material-symbols-outlined text-xs">info</span> All uploaded files are automatically checked for document validity and authenticity.
-                        </p>
-                    </div>
                 </div>
 
-                <div className="mt-8 bg-surface-container-low/50 rounded-xl border border-outline-variant/10 overflow-hidden">
-                    <div className="flex flex-col md:flex-row">
-                        <div className="md:w-1/4 h-32 md:h-auto overflow-hidden grayscale opacity-60">
-                            <img className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAz3bqN0QfGpfWN_lEtJ5RY9CeLK6mvgbNxaVXs60_YpAcvD8XF_2MntMQiN74D6XOS40nXRBlsm3VqnfrljuiMEiYHgs8CjZ9WpjNxCaRpk6HExkswe82IZf6ogUzsoM99gjns_Zf5pvZG__68uITTOIIeyiQlhnMHzgZmUicexVrwjRxf6dvJJ4dx9TMtYsceFPWhPtkzayQvTrGwrIJ0UxOw0PXBZz0_O0WswYfdEsytx7uSuvHS53-RjCKQ1SdfRTKeK_1SXw" alt="System infrastructure" />
+                {/* Infrastructure Footer Card */}
+                <div className="glass-panel p-6 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div className="flex items-center gap-4 flex-1">
+                        <div className="w-12 h-12 rounded-xl glass-surface flex items-center justify-center">
+                            <span className="material-symbols-outlined text-primary text-2xl drop-shadow-[0_0_8px_rgba(24,86,255,0.6)]">hub</span>
                         </div>
-                        <div className="p-6 md:w-3/4 flex flex-col justify-center">
-                            <div className="flex items-center gap-2 text-on-surface-variant mb-2">
-                                <span className="material-symbols-outlined text-sm">security</span>
-                                <h4 className="font-headline font-bold uppercase tracking-widest text-[11px]">System Infrastructure</h4>
-                            </div>
-                            <p className="text-on-surface-variant text-xs leading-relaxed max-w-3xl">
-                                Documents are processed through the Editorial Security Pipeline. Assets are encrypted with AES-256 at rest. Verification is performed against Microsoft Azure Security protocols to ensure data integrity and compliance with international standards including ISO 27001 and GDPR.
+                        <div>
+                            <h4 className="text-sm font-bold text-white mb-1">System Infrastructure Pipeline</h4>
+                            <p className="text-[11px] text-white/50 max-w-xl leading-relaxed">
+                                Documents are processed via AI pipeline with AES-256 encryption. Azure Security protocols ensure data integrity compliance (ISO 27001).
                             </p>
                         </div>
                     </div>
+                    <div className="flex gap-4">
+                        <a className="text-[10px] font-bold text-white/40 hover:text-white uppercase tracking-widest transition-colors cursor-pointer">Status</a>
+                        <a className="text-[10px] font-bold text-white/40 hover:text-white uppercase tracking-widest transition-colors cursor-pointer">Support</a>
+                    </div>
                 </div>
             </main>
-
-            <footer className="mt-auto px-8 py-4 border-t border-outline-variant/10 flex justify-between items-center text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
-                <div>© 2024 Compliance Control Panel</div>
-                <div className="flex gap-4">
-                    <a className="hover:text-primary" href="#">System Status</a>
-                    <a className="hover:text-primary" href="#">Documentation</a>
-                    <a className="hover:text-primary" href="#">Support</a>
-                </div>
-            </footer>
         </div>
     );
 };

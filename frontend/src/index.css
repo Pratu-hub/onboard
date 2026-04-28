@@ -1,77 +1,148 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 @theme {
-  --color-primary: #005faa;
-  --color-error: #ba1a1a;
-  --color-primary-container: #0078d4;
-  --color-on-primary: #ffffff;
-  --color-background: #fdf8f6;
-  --color-tertiary-container: #bc5b00;
-  --color-surface-variant: #e0e3e5;
-  --color-on-surface-variant: #404752;
-  --color-on-primary-fixed: #001c39;
-  --color-secondary: #515f74;
-  --color-on-primary-fixed-variant: #004883;
-  --color-on-tertiary-fixed: #311300;
-  --color-error-container: #ffdad6;
-  --color-on-background: #1c1b1b;
-  --color-on-error: #ffffff;
-  --color-secondary-container: #d5e3fc;
-  --color-surface-container-lowest: #ffffff;
-  --color-on-secondary: #ffffff;
-  --color-primary-fixed: #d3e3ff;
-  --color-surface-tint: #0060ab;
-  --color-primary-fixed-dim: #a3c9ff;
-  --color-on-secondary-fixed-variant: #3a485b;
-  --color-on-tertiary-container: #ffffff;
-  --color-surface-container-low: #f7f3f1;
-  --color-outline-variant: #c0c7d4;
-  --color-outline: #717783;
-  --color-surface-dim: #ddd9d7;
-  --color-inverse-surface: #2d3133;
-  --color-surface-container-high: #ebe7e5;
-  --color-on-tertiary: #ffffff;
-  --color-surface-container: #f1edeb;
-  --color-on-primary-container: #ffffff;
-  --color-secondary-fixed-dim: #b9c7df;
-  --color-surface-bright: #fdf8f6;
-  --color-inverse-primary: #a3c9ff;
-  --color-surface: #fdf8f6;
-  --color-tertiary-fixed: #ffdbc8;
-  --color-on-error-container: #93000a;
-  --color-on-secondary-fixed: #0d1c2e;
-  --color-tertiary: #974700;
-  --color-surface-container-highest: #e6e2e0;
-  --color-tertiary-fixed-dim: #ffb689;
-  --color-on-surface: #1c1b1b;
-  --color-inverse-on-surface: #eff1f3;
-  --color-on-tertiary-fixed-variant: #743500;
-  --color-on-secondary-container: #57657a;
-  --color-secondary-fixed: #d5e3fc;
+  /* === Glassmorphism Color Tokens === */
+  --color-primary: #1856FF;
+  --color-secondary: #3A344E;
+  --color-success: #07CA6B;
+  --color-warning: #E89558;
+  --color-danger: #EA2143;
+  --color-info: #38BDF8;
+  --color-surface: #FFFFFF;
+  --color-text: #141414;
 
-  --font-headline: "Manrope";
-  --font-body: "Inter";
-  --font-label: "Inter";
+  /* === Legacy compatibility aliases === */
+  --color-error: #EA2143;
+  --color-on-primary: #FFFFFF;
+  --color-on-surface: #E8E8E8;
+  --color-on-surface-variant: #9CA3AF;
+  --color-outline: #4B5563;
+  --color-outline-variant: rgba(255, 255, 255, 0.12);
+
+  /* === Typography === */
+  --font-headline: "Plus Jakarta Sans";
+  --font-body: "Plus Jakarta Sans";
+  --font-label: "Plus Jakarta Sans";
+  --font-mono: "JetBrains Mono";
 }
 
 @layer base {
-  body { 
-    font-family: 'Inter', sans-serif;
-    color: var(--color-on-surface);
-    background-color: var(--color-surface);
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #E8E8E8;
+    background-color: #0a0a12;
+    background-image:
+      radial-gradient(ellipse at 15% 50%, rgba(24, 86, 255, 0.12), transparent 55%),
+      radial-gradient(ellipse at 85% 20%, rgba(58, 52, 78, 0.18), transparent 50%),
+      radial-gradient(ellipse at 50% 90%, rgba(24, 86, 255, 0.06), transparent 50%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+
+  /* Scrollbar styling for glass aesthetic */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
 }
 
 @layer utilities {
+  /* === Glass Surface Tiers === */
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .glass-surface {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .glass-elevated {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(32px);
+    -webkit-backdrop-filter: blur(32px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+
+  /* === Interaction Utilities === */
+  .glass-hover:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.18);
+    transform: translateY(-1px);
+    transition: all 0.2s ease;
+  }
+
+  .glass-glow:hover {
+    box-shadow: 0 0 20px rgba(24, 86, 255, 0.15), 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+
+  /* === Badges (hollow glass) === */
+  .badge-success {
+    background: rgba(7, 202, 107, 0.12);
+    border: 1px solid rgba(7, 202, 107, 0.4);
+    color: #07CA6B;
+  }
+
+  .badge-danger {
+    background: rgba(234, 33, 67, 0.12);
+    border: 1px solid rgba(234, 33, 67, 0.4);
+    color: #EA2143;
+  }
+
+  .badge-warning {
+    background: rgba(232, 149, 88, 0.12);
+    border: 1px solid rgba(232, 149, 88, 0.4);
+    color: #E89558;
+  }
+
+  .badge-info {
+    background: rgba(24, 86, 255, 0.12);
+    border: 1px solid rgba(24, 86, 255, 0.4);
+    color: #1856FF;
+  }
+
+  .badge-neutral {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #9CA3AF;
+  }
+
+  /* === Micro Animations === */
+  @keyframes glass-fade-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .glass-animate-in {
+    animation: glass-fade-in 0.4s ease-out;
+  }
+
+  @keyframes soft-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .glass-pulse {
+    animation: soft-pulse 2s ease-in-out infinite;
+  }
+
+  /* === Material Symbols === */
   .material-symbols-outlined {
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
   }
-  .glass-panel {
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(20px);
-  }
-  .kinetic-lift:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 10px 30px -10px rgba(25, 28, 30, 0.1);
+
+  /* === Reduced motion === */
+  @media (prefers-reduced-motion: reduce) {
+    .glass-hover:hover { transform: none; }
+    .glass-animate-in { animation: none; }
+    .glass-pulse { animation: none; }
   }
 }

@@ -114,10 +114,10 @@ const StatusTracker = () => {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="flex items-center justify-center min-h-[60vh] glass-animate-in">
                 <div className="text-center space-y-4">
-                    <span className="material-symbols-outlined text-primary text-5xl animate-spin">progress_activity</span>
-                    <p className="text-on-surface-variant font-medium">Loading status tracker...</p>
+                    <span className="material-symbols-outlined text-primary text-5xl animate-spin drop-shadow-[0_0_10px_rgba(24,86,255,0.8)]">progress_activity</span>
+                    <p className="text-white/60 font-medium">Loading status tracker...</p>
                 </div>
             </div>
         );
@@ -128,124 +128,121 @@ const StatusTracker = () => {
     const processingCount = documents.filter(d => d.status === 'ai_processing' || d.status === 'uploaded').length;
     const pendingCount = documents.filter(d => d.status === 'pending').length;
 
-    // Calculate which step user is currently on
     const completedSteps = verifiedCount;
     const currentStep = completedSteps + 1;
     const totalSteps = documents.length;
 
-    // Build activity feed from document data
     const activities = documents
         .filter(d => d.status !== 'pending')
         .sort((a, b) => new Date(b.uploaded_at || 0) - new Date(a.uploaded_at || 0))
         .slice(0, 5);
 
     return (
-        <div className="font-body text-on-surface antialiased">
-            {/* Hidden File Input */}
+        <div className="font-body text-white antialiased pb-12 glass-animate-in">
             <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileChange} accept=".pdf,.jpg,.jpeg,.png" />
 
-            {/* Header Section */}
-            <div className="mb-12">
-                <h1 className="text-4xl font-extrabold font-headline tracking-tight mb-2">Onboarding Progress</h1>
-                <p className="text-on-surface-variant text-lg max-w-2xl">
+            <div className="mb-10 pl-2">
+                <h1 className="text-4xl font-extrabold font-headline tracking-tight mb-3 text-white drop-shadow-sm">Onboarding Progress</h1>
+                <p className="text-white/60 text-sm max-w-2xl leading-relaxed">
                     Track your document verification status in real-time. Please resolve any flagged items to proceed with your integration.
                 </p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 {/* Main Column: Visual Stepper */}
-                <div className="lg:col-span-8 space-y-8">
-                    <div className="bg-surface-container-lowest p-8 rounded-xl ring-1 ring-outline-variant/10 shadow-sm">
-                        <div className="flex items-center justify-between mb-8">
-                            <h2 className="text-xl font-bold font-headline">Verification Lifecycle</h2>
-                            <span className="bg-tertiary-fixed text-on-tertiary-fixed px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+                <div className="lg:col-span-8">
+                    <div className="glass-panel p-8 rounded-2xl relative overflow-hidden">
+                        {/* Glow effect backer */}
+                        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] -z-10 pointer-events-none"></div>
+
+                        <div className="flex items-center justify-between mb-10">
+                            <h2 className="text-xl font-bold font-headline text-white">Verification Lifecycle</h2>
+                            <span className="glass-surface border border-white/10 text-white px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] shadow-sm">
                                 Step {Math.min(currentStep, totalSteps)} of {totalSteps}
                             </span>
                         </div>
 
                         {/* Stepper */}
-                        <div className="space-y-12">
+                        <div className="space-y-0 relative z-10">
                             {documents.map((doc, index) => {
                                 const meta = getDocMeta(doc.doc_type);
                                 const stepStatus = getStepStatus(doc);
                                 const isLast = index === documents.length - 1;
 
-                                // Determine if this step should appear locked
-                                // A step is locked if all previous non-verified steps exist (i.e., there's a rejected or pending step before it)
                                 const previousSteps = documents.slice(0, index);
                                 const hasBlockingStep = previousSteps.some(d => d.status === 'rejected');
                                 const isLocked = stepStatus === 'pending' && hasBlockingStep;
 
                                 return (
-                                    <div className="relative" key={doc.doc_type}>
-                                        <div className={`flex items-start gap-6 ${isLocked ? 'opacity-40' : ''}`}>
+                                    <div className="relative pb-10" key={doc.doc_type}>
+                                        <div className={`flex items-start gap-6 ${isLocked ? 'opacity-40 grayscale' : ''} transition-all duration-300`}>
                                             {/* Step Indicator */}
                                             <div className="flex flex-col items-center">
                                                 {/* Circle */}
                                                 {stepStatus === 'validated' && (
-                                                    <div className="z-10 w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white shadow-lg">
-                                                        <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                                                    <div className="z-10 w-12 h-12 rounded-full bg-success/20 border border-success/50 flex items-center justify-center text-success shadow-[0_0_15px_rgba(7,202,107,0.3)]">
+                                                        <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
                                                     </div>
                                                 )}
                                                 {stepStatus === 'rejected' && (
-                                                    <div className="z-10 w-10 h-10 rounded-full bg-error flex items-center justify-center text-white shadow-lg">
-                                                        <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>error</span>
+                                                    <div className="z-10 w-12 h-12 rounded-full bg-danger/20 border border-danger/50 flex items-center justify-center text-danger shadow-[0_0_15px_rgba(234,33,67,0.3)]">
+                                                        <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>error</span>
                                                     </div>
                                                 )}
                                                 {stepStatus === 'processing' && (
-                                                    <div className="z-10 w-10 h-10 rounded-full bg-tertiary flex items-center justify-center text-white shadow-lg">
-                                                        <span className="material-symbols-outlined animate-spin">progress_activity</span>
+                                                    <div className="z-10 w-12 h-12 rounded-full bg-info/20 border border-info/50 flex items-center justify-center text-info shadow-[0_0_15px_rgba(56,189,248,0.3)]">
+                                                        <span className="material-symbols-outlined text-[20px] animate-spin">progress_activity</span>
                                                     </div>
                                                 )}
                                                 {stepStatus === 'pending' && (
-                                                    <div className={`z-10 w-10 h-10 rounded-full flex items-center justify-center border-2 border-dashed ${isLocked ? 'bg-surface-container-high text-on-surface-variant border-outline-variant' : 'bg-surface-variant text-on-surface-variant border-outline'}`}>
-                                                        <span className="material-symbols-outlined">{isLocked ? 'lock' : 'hourglass_empty'}</span>
+                                                    <div className={`z-10 w-12 h-12 rounded-full flex items-center justify-center border-2 border-dashed ${isLocked ? 'glass-surface text-white/30 border-white/10' : 'bg-primary/5 text-primary border-primary/30'}`}>
+                                                        <span className="material-symbols-outlined text-[20px]">{isLocked ? 'lock' : 'hourglass_empty'}</span>
                                                     </div>
                                                 )}
 
                                                 {/* Connector Line */}
                                                 {!isLast && (
-                                                    <div className={`w-0.5 h-20 mt-2 ${
-                                                        stepStatus === 'validated' ? 'bg-primary' :
-                                                        stepStatus === 'rejected' ? 'bg-error/30' :
-                                                        stepStatus === 'processing' ? 'bg-tertiary/30' :
-                                                        'bg-surface-container-high border-l border-dashed border-outline-variant'
+                                                    <div className={`absolute top-12 bottom-0 left-6 -ml-px w-0.5 ${
+                                                        stepStatus === 'validated' ? 'bg-success/50 shadow-[0_0_8px_rgba(7,202,107,0.5)]' :
+                                                        stepStatus === 'rejected' ? 'bg-danger/50' :
+                                                        stepStatus === 'processing' ? 'bg-info/50 shadow-[0_0_8px_rgba(56,189,248,0.5)]' :
+                                                        'bg-transparent border-l-2 border-dashed border-white/10'
                                                     }`}></div>
                                                 )}
                                             </div>
 
                                             {/* Step Content */}
-                                            <div className="pt-1 flex-1">
+                                            <div className="pt-2 flex-1 pb-4">
                                                 <div className="flex justify-between items-center mb-1">
-                                                    <h3 className={`font-bold text-lg font-headline ${isLocked ? '' : stepStatus === 'pending' ? 'opacity-60' : ''}`}>
+                                                    <h3 className={`font-bold text-lg font-headline ${isLocked ? 'text-white/40' : stepStatus === 'pending' ? 'text-white/80' : 'text-white'}`}>
                                                         {meta.title}
                                                     </h3>
                                                     {stepStatus === 'validated' && (
-                                                        <span className="text-primary font-bold text-sm">Validated</span>
+                                                        <span className="text-success font-bold text-xs uppercase tracking-widest drop-shadow-[0_0_4px_rgba(7,202,107,0.6)]">Validated</span>
                                                     )}
                                                     {stepStatus === 'rejected' && (
-                                                        <span className="text-error font-bold text-sm">Action Required</span>
+                                                        <span className="text-danger font-bold text-xs uppercase tracking-widest drop-shadow-[0_0_4px_rgba(234,33,67,0.6)]">Action Required</span>
                                                     )}
                                                     {stepStatus === 'processing' && (
-                                                        <span className="text-tertiary font-bold text-sm">Processing</span>
+                                                        <span className="text-info font-bold text-xs uppercase tracking-widest drop-shadow-[0_0_4px_rgba(56,189,248,0.6)]">Processing</span>
                                                     )}
                                                     {stepStatus === 'pending' && !isLocked && (
-                                                        <span className="text-on-surface-variant font-medium text-sm">Pending Upload</span>
+                                                        <span className="text-white/40 font-bold text-xs uppercase tracking-widest">Pending</span>
                                                     )}
                                                     {isLocked && (
-                                                        <span className="text-on-surface-variant font-medium text-sm">Locked</span>
+                                                        <span className="text-white/20 font-bold text-xs uppercase tracking-widest">Locked</span>
                                                     )}
                                                 </div>
 
                                                 {/* Validated content */}
                                                 {stepStatus === 'validated' && (
                                                     <>
-                                                        <p className="text-on-surface-variant text-sm mb-4">
+                                                        <p className="text-white/50 text-[11px] mb-4">
                                                             {doc.reviewed_at ? `Validated on ${formatDate(doc.reviewed_at)}` : 'Successfully verified.'}
                                                         </p>
-                                                        <div className="bg-surface-container-low p-3 rounded-lg flex items-center gap-3">
-                                                            <span className="material-symbols-outlined text-primary">{meta.icon}</span>
-                                                            <span className="text-xs font-medium">{doc.original_name || doc.filename || 'Document uploaded'}</span>
+                                                        <div className="glass-surface border border-success/20 p-3 rounded-xl flex items-center gap-3 w-fit">
+                                                            <span className="material-symbols-outlined text-success text-sm">{meta.icon}</span>
+                                                            <span className="text-xs font-semibold text-white/90">{doc.original_name || doc.filename || 'Document uploaded'}</span>
                                                         </div>
                                                     </>
                                                 )}
@@ -253,17 +250,17 @@ const StatusTracker = () => {
                                                 {/* Rejected content */}
                                                 {stepStatus === 'rejected' && (
                                                     <>
-                                                        <p className="text-on-surface-variant text-sm mb-4">Verification failed. Please review and re-submit.</p>
-                                                        <div className="bg-error-container/50 border border-error/20 p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                                        <p className="text-white/50 text-[11px] mb-4">Verification failed. Please review and re-submit.</p>
+                                                        <div className="glass-surface border border-danger/30 p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                                             <div className="flex items-center gap-3">
-                                                                <span className="material-symbols-outlined text-error">{meta.icon}</span>
-                                                                <span className="text-xs font-semibold text-on-error-container">
-                                                                    {doc.reviewer_notes || 'The document did not pass verification. Please provide a valid copy.'}
+                                                                <span className="material-symbols-outlined text-danger">{meta.icon}</span>
+                                                                <span className="text-xs font-semibold text-danger drop-shadow-sm">
+                                                                    {doc.reviewer_notes || 'The document did not pass verification.'}
                                                                 </span>
                                                             </div>
                                                             <button
                                                                 onClick={() => handleUploadClick(doc.doc_type)}
-                                                                className="bg-gradient-to-br from-primary to-primary-container text-on-primary text-[10px] font-bold px-4 py-2 rounded-md uppercase tracking-wider whitespace-nowrap shadow-md hover:shadow-lg transition-shadow"
+                                                                className="bg-danger/20 hover:bg-danger/40 border border-danger/50 text-white text-[10px] font-bold px-4 py-2.5 rounded-lg uppercase tracking-widest whitespace-nowrap transition-colors"
                                                             >
                                                                 Re-upload Now
                                                             </button>
@@ -274,15 +271,15 @@ const StatusTracker = () => {
                                                 {/* Processing content */}
                                                 {stepStatus === 'processing' && (
                                                     <>
-                                                        <p className="text-on-surface-variant text-sm mb-4">
-                                                            Document uploaded. Automated verification in progress.
+                                                        <p className="text-white/50 text-[11px] mb-4">
+                                                            Document uploaded. Automated AI verification in progress.
                                                         </p>
-                                                        <div className="bg-tertiary-fixed/30 border border-tertiary/10 p-3 rounded-lg flex items-center gap-3">
-                                                            <span className="material-symbols-outlined text-tertiary animate-pulse">{meta.icon}</span>
+                                                        <div className="glass-surface border border-info/20 p-3 rounded-xl flex items-center gap-3 max-w-md">
+                                                            <span className="material-symbols-outlined text-info text-sm animate-pulse">{meta.icon}</span>
                                                             <div className="flex-1">
-                                                                <span className="text-xs font-medium block">{doc.original_name || doc.filename || 'Processing...'}</span>
-                                                                <div className="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden mt-2">
-                                                                    <div className="bg-gradient-to-r from-tertiary to-tertiary-container h-full w-[65%] rounded-full animate-pulse"></div>
+                                                                <span className="text-xs font-semibold text-white block truncate">{doc.original_name || doc.filename || 'Processing...'}</span>
+                                                                <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden mt-2">
+                                                                    <div className="bg-info h-full w-[65%] rounded-full shadow-[0_0_8px_rgba(56,189,248,0.8)] animate-pulse"></div>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -292,19 +289,19 @@ const StatusTracker = () => {
                                                 {/* Pending content */}
                                                 {stepStatus === 'pending' && !isLocked && (
                                                     <>
-                                                        <p className="text-on-surface-variant/60 text-sm mb-4">Awaiting your documentation to begin validation.</p>
+                                                        <p className="text-white/40 text-[11px] mb-4">Awaiting your documentation to begin validation.</p>
                                                         <button
                                                             onClick={() => handleUploadClick(doc.doc_type)}
-                                                            className="text-primary text-xs font-bold uppercase tracking-widest hover:underline"
+                                                            className="text-primary hover:text-white text-[10px] font-bold uppercase tracking-[0.15em] transition-colors flex items-center gap-1"
                                                         >
-                                                            Upload Document →
+                                                            Upload Document <span className="material-symbols-outlined text-sm">arrow_forward</span>
                                                         </button>
                                                     </>
                                                 )}
 
                                                 {/* Locked content */}
                                                 {isLocked && (
-                                                    <p className="text-on-surface-variant text-sm">Complete previous flagged steps to unlock.</p>
+                                                    <p className="text-white/30 text-[11px]">Complete previous flagged steps to unlock.</p>
                                                 )}
                                             </div>
                                         </div>
@@ -319,33 +316,34 @@ const StatusTracker = () => {
                 <aside className="lg:col-span-4 space-y-6">
                     <div className="sticky top-24">
                         {/* Recent Activity */}
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-lg font-bold font-headline tracking-tight">Recent Activity</h2>
+                        <div className="flex items-center justify-between mb-4 pl-1">
+                            <h2 className="text-lg font-bold font-headline tracking-tight text-white">Recent Activity</h2>
                             {rejectedCount > 0 && (
-                                <span className="w-6 h-6 rounded-full bg-error text-white text-[10px] flex items-center justify-center font-bold">
+                                <span className="w-6 h-6 rounded-lg bg-danger/20 border border-danger/50 text-danger text-[10px] flex items-center justify-center font-bold shadow-[0_0_10px_rgba(234,33,67,0.4)]">
                                     {rejectedCount}
                                 </span>
                             )}
                         </div>
 
-                        <div className="space-y-4">
+                        <div className="space-y-3">
                             {/* Critical: Rejected Docs */}
                             {documents.filter(d => d.status === 'rejected').map(doc => {
                                 const meta = getDocMeta(doc.doc_type);
                                 return (
-                                    <div key={`reject-${doc.doc_type}`} className="bg-surface-container-lowest border-l-4 border-error p-5 rounded-xl shadow-sm ring-1 ring-error/10">
-                                        <div className="flex items-start gap-4">
-                                            <div className="w-8 h-8 rounded-full bg-error-container flex items-center justify-center flex-shrink-0">
-                                                <span className="material-symbols-outlined text-error text-xl">warning</span>
+                                    <div key={`reject-${doc.doc_type}`} className="glass-surface border-l-4 border-l-danger border-r border-t border-b border-white/5 p-4 rounded-xl relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 w-24 h-24 bg-danger/10 rounded-full blur-[30px] -mr-10 -mt-10"></div>
+                                        <div className="flex items-start gap-4 relative z-10">
+                                            <div className="w-8 h-8 rounded-lg bg-danger/10 border border-danger/20 flex items-center justify-center flex-shrink-0 mt-1">
+                                                <span className="material-symbols-outlined text-danger text-sm">warning</span>
                                             </div>
                                             <div className="flex-1">
-                                                <p className="text-sm font-bold text-on-surface mb-1">Action Required: {meta.title}</p>
-                                                <p className="text-xs text-on-surface-variant leading-relaxed mb-4">
-                                                    {doc.reviewer_notes || 'Please re-upload this document with the corrections noted.'}
+                                                <p className="text-xs font-bold text-white mb-1">Action Required: {meta.title}</p>
+                                                <p className="text-[11px] text-white/60 leading-relaxed mb-4">
+                                                    {doc.reviewer_notes || 'Please re-upload this document.'}
                                                 </p>
                                                 <button
                                                     onClick={() => handleUploadClick(doc.doc_type)}
-                                                    className="w-full py-2 bg-error text-white rounded-md text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-opacity"
+                                                    className="w-full py-2 bg-danger/20 hover:bg-danger/40 border border-danger/30 text-white rounded-lg text-[9px] font-bold uppercase tracking-[0.2em] transition-colors"
                                                 >
                                                     Re-upload Now
                                                 </button>
@@ -359,18 +357,18 @@ const StatusTracker = () => {
                             {documents.filter(d => d.status === 'verified').slice(0, 3).map(doc => {
                                 const meta = getDocMeta(doc.doc_type);
                                 return (
-                                    <div key={`verified-${doc.doc_type}`} className="bg-surface-container-low p-5 rounded-xl transition-all hover:bg-surface-container-high cursor-default">
+                                    <div key={`verified-${doc.doc_type}`} className="glass-surface p-4 rounded-xl border border-white/5 hover:bg-white/10 transition-colors cursor-default">
                                         <div className="flex items-start gap-4">
-                                            <div className="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center flex-shrink-0">
-                                                <span className="material-symbols-outlined text-primary text-xl">info</span>
+                                            <div className="w-8 h-8 rounded-lg bg-success/10 border border-success/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                                <span className="material-symbols-outlined text-success text-sm">verified</span>
                                             </div>
                                             <div className="flex-1">
-                                                <p className="text-sm font-bold text-on-surface mb-1">{meta.title} Confirmed</p>
-                                                <p className="text-xs text-on-surface-variant leading-relaxed">
-                                                    HR has successfully validated your {meta.title.toLowerCase()}.
+                                                <p className="text-xs font-bold text-white mb-0.5">{meta.title} Confirmed</p>
+                                                <p className="text-[10px] text-white/50 leading-relaxed">
+                                                    Successfully validated by AI pipeline.
                                                 </p>
                                                 {doc.reviewed_at && (
-                                                    <span className="text-[10px] text-outline mt-2 block">{getTimeAgo(doc.reviewed_at)}</span>
+                                                    <span className="text-[9px] text-white/30 mt-2 block font-mono">{getTimeAgo(doc.reviewed_at)}</span>
                                                 )}
                                             </div>
                                         </div>
@@ -380,41 +378,40 @@ const StatusTracker = () => {
 
                             {/* Empty state if no activity */}
                             {activities.length === 0 && (
-                                <div className="bg-surface-container-low p-5 rounded-xl text-center">
-                                    <span className="material-symbols-outlined text-outline text-3xl mb-2">inbox</span>
-                                    <p className="text-sm text-on-surface-variant">No recent activity. Upload your first document to get started.</p>
+                                <div className="glass-surface p-6 rounded-xl text-center border border-white/5">
+                                    <span className="material-symbols-outlined text-white/20 text-3xl mb-2">inbox</span>
+                                    <p className="text-xs text-white/40">No recent activity.</p>
                                 </div>
                             )}
 
-                            {/* HR Help Card */}
-                            <div className="bg-gradient-to-br from-secondary to-secondary-container p-6 rounded-2xl relative overflow-hidden group shadow-md mt-10">
-                                <div className="relative z-10">
-                                    <h3 className="text-on-secondary font-bold text-lg font-headline mb-2 leading-tight">Need help with docs?</h3>
-                                    <p className="text-on-secondary/80 text-sm mb-4">Our HR concierge is available 24/7 for onboarding assistance.</p>
-                                    <button className="px-4 py-2 bg-white text-secondary text-[10px] font-extrabold rounded-md uppercase tracking-tighter hover:bg-white/90 transition-colors">
-                                        Chat with Concierge
-                                    </button>
-                                </div>
-                                <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform duration-500">
-                                    <span className="material-symbols-outlined text-[120px]">support_agent</span>
+                            {/* Concierge Card */}
+                            <div className="glass-panel p-5 rounded-xl relative overflow-hidden group mt-6 border border-primary/20 bg-primary/5">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-[40px] pointer-events-none group-hover:bg-primary/40 transition-colors duration-700"></div>
+                                <div className="relative z-10 flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-xl bg-primary/20 text-primary flex items-center justify-center shadow-[0_0_15px_rgba(24,86,255,0.4)]">
+                                        <span className="material-symbols-outlined">support_agent</span>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-white font-bold text-sm mb-1">Need help?</h3>
+                                        <p className="text-white/50 text-[10px] mb-2 leading-tight">HR concierge is available 24/7.</p>
+                                        <a className="text-[10px] text-primary font-bold uppercase tracking-widest cursor-pointer hover:text-white transition-colors">Chat Now →</a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         {/* Office Location */}
-                        <div className="mt-8 bg-surface-container-lowest p-4 rounded-xl ring-1 ring-outline-variant/10">
-                            <h4 className="text-xs font-bold text-outline uppercase tracking-widest mb-3">Office Location</h4>
-                            <div className="h-32 rounded-lg bg-surface-variant overflow-hidden mb-3 relative">
-                                <img
-                                    className="w-full h-full object-cover"
-                                    alt="Office location map"
-                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCYmr_YM8QQ_elbq-4FqlKbV1sPXN__TkkapJT5sGV8V_b7PUhicBf9gizZOuWkDKKkrgY70s6DB8izy3EHfjP4qo6kWAxT7UYHaTvlG1e_HMEwrp8c__9cgObyZw4RdAfSPWHoeLF8AbGF2imnbGC48PDRmE3q8A32IhUKmIqWNgNAemJdKX5CjK5rwFaXsO-CVHj4mByhn2k3oSF-wsRTIHzchbukfvhkvK4leH9-dKPKIJlKwTuH8_gs0zMxAk-ZwLzoqtFaVA"
-                                />
-                                <div className="absolute inset-0 bg-primary/10"></div>
-                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 bg-primary rounded-full border-4 border-white shadow-xl animate-pulse"></div>
+                        <div className="mt-6 glass-panel p-4 rounded-xl border border-white/5">
+                            <div className="flex items-center gap-2 mb-3">
+                                <span className="material-symbols-outlined text-white/40 text-sm">location_on</span>
+                                <h4 className="text-[10px] font-bold text-white/60 uppercase tracking-[0.2em]">Office</h4>
                             </div>
-                            <p className="text-xs font-bold font-headline">OnboardIQ HQ - Seattle</p>
-                            <p className="text-[10px] text-on-surface-variant">455 Enterprise Way, Suite 200</p>
+                            <div className="h-28 rounded-lg glass-surface overflow-hidden mb-3 relative border border-white/10">
+                                <div className="absolute inset-0 bg-primary/10 mix-blend-overlay"></div>
+                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-primary rounded-full border-2 border-white shadow-[0_0_20px_rgba(24,86,255,1)] animate-pulse"></div>
+                            </div>
+                            <p className="text-xs font-bold font-headline text-white/90">OnboardIQ HQ - Seattle</p>
+                            <p className="text-[10px] text-white/40 mt-0.5">455 Enterprise Way, Suite 200</p>
                         </div>
                     </div>
                 </aside>
