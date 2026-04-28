@@ -46,7 +46,7 @@ jobs:
           AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
         run: |
           REGISTRY=${{ steps.get-acr.outputs.registry }}
-          RG="${AZURE_RESOURCE_GROUP:-onboardiq-rg}"
+          RG="${AZURE_RESOURCE_GROUP:-OpenAI}"
 
           echo "🔄 Updating backend container app..."
           az containerapp update \
