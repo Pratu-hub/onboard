@@ -5,12 +5,15 @@ import DashboardLayout from './components/DashboardLayout';
 
 import Login from './pages/Login';
 import NewHireDashboard from './pages/NewHireDashboard';
-import ItAdminDashboard from './pages/ItAdminDashboard';
 import HrDashboardLayout from './features/hr/HrDashboardLayout';
 import HrCasesPage from './features/hr/pages/HrCasesPage';
 import HrAnalyticsPage from './features/hr/pages/HrAnalyticsPage';
 import NewHireProfile from './pages/NewHireProfile';
 import StatusTracker from './pages/StatusTracker';
+import ItAdminLayout from './features/it-admin/ItAdminLayout';
+import TeamManagement from './features/it-admin/pages/TeamManagement';
+import ProvisioningQueue from './features/it-admin/pages/ProvisioningQueue';
+import SystemLogs from './features/it-admin/pages/SystemLogs';
 
 // A wrapper for routes that require authentication
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -65,6 +68,7 @@ const Router = () => {
           <Route index element={<Navigate to="cases" replace />} />
           <Route path="cases" element={<HrCasesPage />} />
           <Route path="analytics" element={<HrAnalyticsPage />} />
+          <Route path="team" element={<TeamManagement />} />
         </Route>
 
         <Route path="/dashboard/status-tracker" element={
@@ -75,9 +79,13 @@ const Router = () => {
 
         <Route path="/dashboard/it-admin" element={
           <ProtectedRoute allowedRoles={['IT_ADMIN']}>
-            <DashboardLayout><ItAdminDashboard /></DashboardLayout>
+            <ItAdminLayout />
           </ProtectedRoute>
-        } />
+        }>
+          <Route index element={<Navigate to="provisioning" replace />} />
+          <Route path="provisioning" element={<ProvisioningQueue />} />
+          <Route path="logs" element={<SystemLogs />} />
+        </Route>
 
         {/* Fallback to login */}
         <Route path="*" element={<Navigate to="/login" replace />} />

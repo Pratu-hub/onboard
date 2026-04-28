@@ -5,37 +5,7 @@ const { getPool, sql } = require('../db/init');
 const { generateToken, validateB2CToken } = require('../middleware/auth');
 const { authenticate } = require('../middleware/auth');
 
-/**
- * POST /api/auth/login
- * Mock login — accepts a role and returns a JWT + user object.
- * Used during development to simulate different user personas.
- */
-router.post('/login', async (req, res) => {
-  const { role } = req.body;
 
-  if (!role || !['NEW_HIRE', 'HR', 'IT_ADMIN'].includes(role)) {
-    return res.status(400).json({ error: 'Invalid role. Must be one of: NEW_HIRE, HR, IT_ADMIN' });
-  }
-
-  try {
-    const pool = await getPool();
-    const result = await pool.request()
-      .input('role', sql.NVarChar, role)
-      .query('SELECT TOP 1 id, email, name, role, department FROM users WHERE role = @role');
-
-    if (result.recordset.length === 0) {
-      return res.status(404).json({ error: `No user found with role '${role}'. Run npm run db:seed first.` });
-    }
-
-    const user = result.recordset[0];
-    const token = generateToken(user);
-
-    res.json({ token, user });
-  } catch (err) {
-    console.error('Login error:', err.message);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
 
 /**
  * POST /api/auth/b2c

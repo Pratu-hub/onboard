@@ -22,7 +22,8 @@
     "jwks-rsa": "^4.0.1",
     "morgan": "^1.10.0",
     "mssql": "^11.0.1",
-    "multer": "^1.4.5-lts.1"
+    "multer": "^1.4.5-lts.1",
+    "openai": "^6.34.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.9"

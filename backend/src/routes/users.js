@@ -8,7 +8,7 @@ const { requireRole } = require('../middleware/rbac');
  * GET /api/users
  * HR only — list all users.
  */
-router.get('/', authenticate, requireRole('HR'), async (req, res) => {
+router.get('/', authenticate, requireRole('HR', 'IT_ADMIN'), async (req, res) => {
   try {
     const pool = await getPool();
     const result = await pool.request()

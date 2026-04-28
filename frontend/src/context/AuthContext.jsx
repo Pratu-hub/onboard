@@ -76,39 +76,6 @@ export const AuthProvider = ({ children }) => {
   }, [instance, accounts]);
 
   /**
-   * Dev mock login — sends a role to the backend,
-   * which looks up a seeded user and returns a self-signed JWT.
-   */
-  const login = async (role) => {
-    try {
-      const response = await fetch(`${API_BASE}/api/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ role })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Login failed');
-      }
-
-      const data = await response.json();
-      const { token, user: userData } = data;
-
-      setUser(userData);
-      localStorage.setItem('onboardiq_token', token);
-      localStorage.setItem('onboardiq_user', JSON.stringify(userData));
-      
-      return userData;
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
-    }
-  };
-
-  /**
    * Azure AD B2C login — sends the B2C idToken to the backend,
    * which validates it, finds or creates the user, and returns our own JWT.
    */
@@ -148,7 +115,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, loginWithB2C, logout, loading }}>
+    <AuthContext.Provider value={{ user, loginWithB2C, logout, loading }}>
       {!loading && children}
     </AuthContext.Provider>
   );

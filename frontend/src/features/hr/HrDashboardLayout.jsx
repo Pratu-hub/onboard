@@ -1,7 +1,9 @@
 import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 const HrDashboardLayout = () => {
+  const { user, logout } = useAuth();
   return (
     <div className="text-white/90 font-body h-screen flex overflow-hidden">
       
@@ -44,10 +46,19 @@ const HrDashboardLayout = () => {
             <span className="material-symbols-outlined group-hover:scale-110 transition-transform">analytics</span>
             <span>Analytics</span>
           </NavLink>
-          <a href="#" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/50 hover:text-white/80 hover:bg-white/[0.06] transition-all group">
+          <NavLink 
+            to="/dashboard/hr/team"
+            className={({ isActive }) => 
+              `flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition-all group ${
+                isActive 
+                  ? 'bg-primary/15 text-primary font-bold border border-primary/20' 
+                  : 'text-white/50 hover:text-white/80 hover:bg-white/[0.06]'
+              }`
+            }
+          >
             <span className="material-symbols-outlined group-hover:scale-110 transition-transform">group</span>
-            <span className="font-medium">Team Management</span>
-          </a>
+            <span>Team Management</span>
+          </NavLink>
           <a href="#" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/50 hover:text-white/80 hover:bg-white/[0.06] transition-all group">
             <span className="material-symbols-outlined group-hover:scale-110 transition-transform">lock</span>
             <span className="font-medium">IT Provisioning Config</span>
@@ -67,6 +78,10 @@ const HrDashboardLayout = () => {
             <span className="material-symbols-outlined text-lg">help_outline</span>
             <span className="font-medium">Support</span>
           </a>
+          <button onClick={logout} className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-danger/70 hover:text-danger hover:bg-danger/10 transition-colors mt-2 text-left">
+            <span className="material-symbols-outlined text-lg">logout</span>
+            <span className="font-medium">Sign Out</span>
+          </button>
         </div>
       </aside>
 
