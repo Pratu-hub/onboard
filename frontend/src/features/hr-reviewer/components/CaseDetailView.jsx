@@ -162,18 +162,25 @@ const CaseDetailView = ({ currentCase, onBack, onVerify, onReject, onApproveAll 
                 {getStatusBadge(doc.status)}
               </div>
 
-              {doc.ai_summary && (
-                <div className={`p-3.5 rounded-xl mb-4 relative overflow-hidden border ${doc.status === 'flagged' ? 'bg-warning/10 border-warning/30' : 'glass-surface border-white/5'}`}>
+              {doc.ai_summary && (() => {
+                let verdict = doc.ai_summary;
+                try {
+                  const parsed = JSON.parse(doc.ai_summary);
+                  verdict = (parsed.aiSummary || '').split('|')[0].trim();
+                } catch { /* plain text, use as-is */ }
+                return (
+                <div className={`p-3 rounded-lg mb-4 relative overflow-hidden ${doc.status === 'flagged' ? 'bg-amber-50 border border-amber-100' : 'bg-surface-container-low'}`}>
                   {doc.status !== 'flagged' && (
-                    <div className="absolute top-0 right-0 p-2 text-primary opacity-40">
-                      <span className="material-symbols-outlined text-lg" style={{fontVariationSettings: "'FILL' 1"}}>auto_awesome</span>
+                    <div className="absolute top-0 right-0 p-1.5 text-primary opacity-50">
+                      <span className="material-symbols-outlined text-sm" style={{fontVariationSettings: "'FILL' 1"}}>auto_awesome</span>
                     </div>
                   )}
-                  <p className={`text-xs leading-relaxed relative z-10 ${doc.status === 'flagged' ? 'text-warning' : 'text-white/70'} italic`}>
-                    "{doc.ai_summary}"
+                  <p className={`text-xs leading-relaxed ${doc.status === 'flagged' ? 'text-amber-800' : 'text-on-surface-variant'} italic`}>
+                    {verdict}
                   </p>
                 </div>
-              )}
+                );
+              })()}
 
               <div className="flex items-center gap-3">
                 <button 

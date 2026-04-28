@@ -2,12 +2,44 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api';
 
+/**
+ * Parses the ai_summary field which may be:
+ *  - A JSON string with { aiSummary, crossVerification } structure
+ *  - A plain text string
+ * Returns a structured object for clean rendering.
+ */
+const parseAiSummary = (raw) => {
+    if (!raw) return null;
+    try {
+        const parsed = JSON.parse(raw);
+        return {
+            isStructured: true,
+            verdict: (parsed.aiSummary || '').split('|')[0].trim(),
+            crossVerification: parsed.crossVerification || null,
+            flags: parsed.crossVerification?.flags || [],
+            confidence: parsed.crossVerification?.confidence ?? null,
+            verified: parsed.crossVerification?.verified ?? null,
+        };
+    } catch {
+        // Plain text summary
+        return {
+            isStructured: false,
+            verdict: raw,
+            crossVerification: null,
+            flags: [],
+            confidence: null,
+            verified: null,
+        };
+    }
+};
+
 const NewHireDashboard = () => {
     const { user } = useAuth();
     const [documents, setDocuments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [uploadingDocType, setUploadingDocType] = useState(null);
     const [uploadProgress, setUploadProgress] = useState({}); // { [docType]: percentage }
+    const [aiModalDoc, setAiModalDoc] = useState(null); // Document to show in AI analysis modal
     const fileInputRef = useRef(null);
 
     useEffect(() => {
@@ -326,10 +358,13 @@ const NewHireDashboard = () => {
                                                     </span>
                                                 )}
                                                 {doc.status === 'flagged' && (
-                                                    <span className="badge-warning px-2.5 py-1 rounded-md text-[9px] font-bold uppercase tracking-wider flex items-center gap-1.5 w-fit" title={doc.ai_summary}>
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); setAiModalDoc(doc); }}
+                                                        className="badge-warning px-2.5 py-1 rounded-md text-[9px] font-bold uppercase tracking-wider flex items-center gap-1.5 w-fit cursor-pointer hover:opacity-80 transition-opacity border-none"
+                                                    >
                                                         <span className="material-symbols-outlined text-[10px]">warning</span>
                                                         Flagged
-                                                    </span>
+                                                    </button>
                                                 )}
                                                 {doc.status === 'rejected' && (
                                                     <span className="badge-danger px-2.5 py-1 rounded-md text-[9px] font-bold uppercase tracking-wider flex items-center gap-1.5 w-fit" title={doc.ai_summary}>
@@ -361,12 +396,15 @@ const NewHireDashboard = () => {
                                                         <span className="text-[10px] text-info font-bold mt-0.5">Awaiting verification</span>
                                                     </div>
                                                 )}
-                                                {doc.status === 'flagged' && (
-                                                    <div className="flex flex-col">
-                                                        <span className="text-xs font-semibold text-white truncate max-w-[150px]">{doc.original_name || doc.filename}</span>
-                                                        <span className="text-[10px] text-warning font-bold mt-0.5 truncate max-w-[200px]">{doc.ai_summary || 'Needs review'}</span>
-                                                    </div>
-                                                )}
+                                                {doc.status === 'flagged' && (() => {
+                                                    const parsed = parseAiSummary(doc.ai_summary);
+                                                    return (
+                                                        <div className="flex flex-col">
+                                                            <span className="text-xs font-semibold text-white truncate max-w-[150px]">{doc.original_name || doc.filename}</span>
+                                                            <span className="text-[10px] text-warning font-bold mt-0.5 truncate max-w-[200px]">{parsed?.verdict || 'Needs review'}</span>
+                                                        </div>
+                                                    );
+                                                })()}
                                                 {doc.status === 'rejected' && (
                                                     <div className="flex flex-col">
                                                         <span className="text-xs font-semibold text-white truncate max-w-[150px]">{doc.original_name || doc.filename}</span>
@@ -423,6 +461,92 @@ const NewHireDashboard = () => {
                     </div>
                 </div>
             </main>
+
+            {/* ── AI Analysis Modal ── */}
+            {aiModalDoc && (() => {
+                const parsed = parseAiSummary(aiModalDoc.ai_summary);
+                const meta = getDocMeta(aiModalDoc.doc_type);
+                return (
+                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[80] flex items-center justify-center p-6" onClick={() => setAiModalDoc(null)}>
+                        <div className="glass-panel w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                            {/* Header */}
+                            <div className="px-6 py-5 border-b border-white/[0.08] flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-warning/20 flex items-center justify-center">
+                                        <span className="material-symbols-outlined text-warning">document_scanner</span>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-sm font-bold text-white">{meta.title} — AI Analysis</h3>
+                                        <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold">Automated Verification Report</p>
+                                    </div>
+                                </div>
+                                <button onClick={() => setAiModalDoc(null)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors text-white/60 hover:text-white">
+                                    <span className="material-symbols-outlined">close</span>
+                                </button>
+                            </div>
+
+                            {/* Body */}
+                            <div className="p-6 space-y-5">
+                                {/* AI Verdict */}
+                                <div className="glass-surface rounded-xl p-4">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <span className="material-symbols-outlined text-primary text-sm" style={{fontVariationSettings: "'FILL' 1"}}>auto_awesome</span>
+                                        <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest">AI Verdict</span>
+                                    </div>
+                                    <p className="text-sm text-white/90 leading-relaxed">{parsed?.verdict || 'No analysis available.'}</p>
+                                </div>
+
+                                {/* Cross-Verification Flags */}
+                                {parsed?.flags?.length > 0 && (
+                                    <div className="space-y-2">
+                                        <div className="flex items-center gap-2">
+                                            <span className="material-symbols-outlined text-warning text-sm">flag</span>
+                                            <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest">Cross-Verification Flags</span>
+                                        </div>
+                                        {parsed.flags.map((flag, i) => (
+                                            <div key={i} className="glass-surface rounded-lg px-4 py-3 flex items-start gap-3">
+                                                <span className="material-symbols-outlined text-sm mt-0.5 flex-shrink-0" style={{color: flag.startsWith('⚠️') ? '#f59e0b' : flag.startsWith('✅') ? '#07ca6b' : '#94a3b8'}}>
+                                                    {flag.startsWith('⚠️') ? 'warning' : flag.startsWith('✅') ? 'check_circle' : 'info'}
+                                                </span>
+                                                <span className="text-xs text-white/80 leading-relaxed">{flag.replace(/^[⚠️✅ℹ️]+\s*/, '')}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Confidence & Status */}
+                                {parsed?.isStructured && (
+                                    <div className="flex items-center gap-4">
+                                        {parsed.confidence !== null && (
+                                            <div className="glass-surface rounded-lg px-4 py-3 flex-1">
+                                                <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold mb-1">Confidence</p>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="flex-1 bg-white/10 h-1.5 rounded-full overflow-hidden">
+                                                        <div className={`h-full rounded-full ${parsed.confidence >= 0.7 ? 'bg-success' : parsed.confidence >= 0.4 ? 'bg-warning' : 'bg-danger'}`} style={{ width: `${parsed.confidence * 100}%` }}></div>
+                                                    </div>
+                                                    <span className="text-xs font-bold text-white">{Math.round(parsed.confidence * 100)}%</span>
+                                                </div>
+                                            </div>
+                                        )}
+                                        <div className="glass-surface rounded-lg px-4 py-3">
+                                            <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold mb-1">Identity Match</p>
+                                            <span className={`text-xs font-bold ${parsed.verified ? 'text-success' : 'text-warning'}`}>
+                                                {parsed.verified ? '✓ Verified' : '✗ Mismatch'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Footer */}
+                            <div className="px-6 py-4 border-t border-white/[0.06] flex items-center gap-2">
+                                <span className="material-symbols-outlined text-white/30 text-sm">info</span>
+                                <p className="text-[10px] text-white/30">This analysis was generated by Azure Document Intelligence + GPT-4o. An HR reviewer will make the final decision.</p>
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
         </div>
     );
 };
