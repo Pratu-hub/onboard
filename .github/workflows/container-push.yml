@@ -50,13 +50,13 @@ jobs:
 
           echo "🔄 Updating backend container app..."
           az containerapp update \
-            --name onboard-backend \
+            --name onboardiq-backend \
             --resource-group $RG \
             --image $REGISTRY/onboard-backend:latest
 
           echo "🔄 Updating frontend container app..."
           az containerapp update \
-            --name onboard-frontend \
+            --name onboardiq-frontend \
             --resource-group $RG \
             --image $REGISTRY/onboard-frontend:latest
 
