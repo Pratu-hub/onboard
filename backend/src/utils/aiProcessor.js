@@ -4,6 +4,7 @@ const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
 
 const { getPool, sql } = require('../db/init');
+const { crossVerifyWithProfile, crossVerifyWithOpenAI } = require('./crossVerifier');
 
 const endpoint = process.env.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT;
 const key = process.env.AZURE_DOCUMENT_INTELLIGENCE_KEY;
@@ -235,19 +236,21 @@ async function analyzeDocument(documentUrl, docType) {
       return {
         status: 'valid',
         summary: `Document analyzed successfully. No specific validation logic for type "${docType}". ${pageCount} page(s) processed.`,
-        extractedFields: { pageCount, charCount: extractedContent.length }
+        extractedFields: { pageCount, charCount: extractedContent.length },
+        extractedText: extractedContent
       };
     }
 
     const validationResult = validator(extractedContent);
     
-    // Add page metadata
+    // Add page metadata and extracted text for cross-verification
     validationResult.summary += ` (Pages: ${pageCount})`;
     validationResult.extractedFields = {
       ...validationResult.extractedFields,
       pageCount,
       charCount: extractedContent.length
     };
+    validationResult.extractedText = extractedContent;
 
     return validationResult;
 
@@ -263,7 +266,7 @@ async function analyzeDocument(documentUrl, docType) {
 
 /**
  * Processes a document record: analyzes the file via Azure Doc Intelligence,
- * then updates the database with the results.
+ * runs cross-verification against the user's profile, then updates the database.
  *
  * @param {number} docId - The document row ID in the database.
  * @param {string} blobUrl - A signed URL to read the document.
@@ -272,27 +275,97 @@ async function analyzeDocument(documentUrl, docType) {
 async function processDocumentWithAI(docId, blobUrl, docType) {
   console.log(`[AI] Processing document ID ${docId}, type: ${docType}`);
 
+  // Step 1: Analyze document with Azure Document Intelligence
   const result = await analyzeDocument(blobUrl, docType);
 
-  // Map AI status to a document status
+  // Step 2: Cross-verify extracted text against user profile
+  let crossVerification = null;
+  try {
+    // Fetch the user_id for this document
+    const pool = await getPool();
+    const docRow = await pool.request()
+      .input('doc_id', sql.Int, docId)
+      .query('SELECT user_id FROM documents WHERE id = @doc_id');
+
+    if (docRow.recordset.length > 0) {
+      const userId = docRow.recordset[0].user_id;
+
+      // Run cross-verification against the user's profile
+      crossVerification = await crossVerifyWithProfile(
+        userId,
+        result.extractedText || '',
+        docType
+      );
+
+      console.log(`[AI] Cross-verification complete: verified=${crossVerification.verified}, flags=${crossVerification.flags.length}`);
+
+      // If cross-verification found issues, downgrade the status
+      if (!crossVerification.verified && result.status === 'valid') {
+        result.status = 'flagged';
+        result.summary += ' | Cross-verification: ' + crossVerification.flags.filter(f => f.startsWith('⚠️')).join('; ');
+      } else if (crossVerification.flags.length > 0) {
+        result.summary += ' | Cross-check: ' + crossVerification.flags[0];
+      }
+
+      // Try Azure OpenAI for deeper analysis (if configured)
+      try {
+        const userRow = await pool.request()
+          .input('user_id', sql.Int, userId)
+          .query('SELECT name, email, department, joining_date FROM users WHERE id = @user_id');
+
+        if (userRow.recordset.length > 0) {
+          const openAIResult = await crossVerifyWithOpenAI(
+            result.extractedText || '',
+            userRow.recordset[0],
+            docType
+          );
+
+          if (openAIResult) {
+            result.openaiAnalysis = openAIResult;
+            if (!openAIResult.verified && result.status === 'valid') {
+              result.status = 'flagged';
+              result.summary += ' | AI Review: ' + (openAIResult.flags || []).join('; ');
+            }
+          }
+        }
+      } catch (openaiErr) {
+        console.log('[AI] OpenAI cross-verify skipped:', openaiErr.message);
+      }
+    }
+  } catch (cvErr) {
+    console.error('[AI] Cross-verification error (non-fatal):', cvErr.message);
+  }
+
+  // Step 3: Map final AI status to a document status
   let dbStatus;
   if (result.status === 'valid') {
     dbStatus = 'verified';
   } else if (result.status === 'flagged') {
     dbStatus = 'flagged'; 
   } else {
-    // If the file is unreadable/error, reset to 'pending' as requested
     dbStatus = 'pending'; 
   }
 
+  // Step 4: Update the database with all results
   try {
     const pool = await getPool();
-    
+    const summaryWithCV = crossVerification
+      ? JSON.stringify({
+          aiSummary: result.summary,
+          crossVerification: {
+            verified: crossVerification.verified,
+            confidence: crossVerification.confidence,
+            flags: crossVerification.flags,
+            details: crossVerification.details
+          }
+        })
+      : result.summary;
+
     await pool.request()
       .input('id', sql.Int, docId)
       .input('status', sql.NVarChar, dbStatus)
       .input('ai_status', sql.NVarChar, result.status)
-      .input('ai_summary', sql.NVarChar, result.summary)
+      .input('ai_summary', sql.NVarChar, summaryWithCV)
       .query(`
         UPDATE documents 
         SET status = @status, 

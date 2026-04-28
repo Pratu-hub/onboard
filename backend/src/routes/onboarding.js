@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { getPool, sql } = require('../db/init');
 const { authenticate } = require('../middleware/auth');
+const { requireRole } = require('../middleware/rbac');
+const { provisionEntraUser } = require('../utils/entraProvisioner');
 
 /**
  * GET /api/onboarding/progress
@@ -34,6 +36,30 @@ router.get('/progress', authenticate, async (req, res) => {
     res.json({ progress: result.recordset[0] });
   } catch (err) {
     console.error('Get progress error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * GET /api/onboarding/all-cases
+ * HR/IT only — list all users and their onboarding progress.
+ */
+router.get('/all-cases', authenticate, requireRole(['HR', 'IT_ADMIN']), async (req, res) => {
+  try {
+    const pool = await getPool();
+    const result = await pool.request()
+      .query(`
+        SELECT 
+          u.id, u.email, u.name, u.role, u.department,
+          p.current_step, p.total_steps, p.status as onboarding_status, p.completed_at
+        FROM users u
+        LEFT JOIN onboarding_progress p ON u.id = p.user_id
+        WHERE u.role = 'NEW_HIRE'
+        ORDER BY u.created_at DESC
+      `);
+    res.json({ cases: result.recordset });
+  } catch (err) {
+    console.error('Get all cases error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -80,6 +106,83 @@ router.patch('/progress', authenticate, async (req, res) => {
     res.json({ progress: result.recordset[0] });
   } catch (err) {
     console.error('Update progress error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * POST /api/onboarding/approve-case/:userId
+ * HR only — finalize onboarding for a user.
+ * 1. Checks if all docs are verified.
+ * 2. Triggers Entra ID provisioning.
+ * 3. Updates progress to 'completed'.
+ */
+router.post('/approve-case/:userId', authenticate, requireRole('HR'), async (req, res) => {
+  const targetUserId = parseInt(req.params.userId);
+
+  try {
+    const pool = await getPool();
+
+    // Step 1: Verify all required documents are 'verified'
+    const docs = await pool.request()
+      .input('user_id', sql.Int, targetUserId)
+      .query('SELECT status, doc_type FROM documents WHERE user_id = @user_id');
+
+    const unverified = docs.recordset.filter(d => d.status !== 'verified');
+    if (unverified.length > 0) {
+      return res.status(400).json({ 
+        error: 'Cannot approve case. Some documents are still pending or rejected.',
+        unverifiedDocs: unverified.map(d => d.doc_type)
+      });
+    }
+
+    // Step 2: Fetch user info for provisioning
+    const userResult = await pool.request()
+      .input('id', sql.Int, targetUserId)
+      .query('SELECT name, email, department FROM users WHERE id = @id');
+
+    if (userResult.recordset.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    const user = userResult.recordset[0];
+
+    // Step 3: Trigger Entra ID Provisioning
+    console.log(`🚀 [PIPELINE] Starting provisioning for ${user.email}`);
+    let provisionResult;
+    try {
+      provisionResult = await provisionEntraUser(user);
+    } catch (pErr) {
+      console.error('❌ [PIPELINE] Provisioning failed:', pErr.message);
+      return res.status(502).json({ error: 'Auto-provisioning failed: ' + pErr.message });
+    }
+
+    // Step 4: Update Onboarding Progress
+    await pool.request()
+      .input('user_id', sql.Int, targetUserId)
+      .query(`
+        UPDATE onboarding_progress
+        SET status = 'completed', completed_at = GETDATE()
+        WHERE user_id = @user_id
+      `);
+
+    // Step 5: Log to Audit Logs
+    await pool.request()
+      .input('user_id', sql.Int, targetUserId)
+      .input('reviewer_name', sql.NVarChar, req.user.name)
+      .input('action_type', sql.NVarChar, 'CASE_APPROVED')
+      .input('notes', sql.NVarChar, `Case approved. Entra ID account provisioned: ${provisionResult.userPrincipalName || 'Success'}`)
+      .query(`
+        INSERT INTO audit_logs (user_id, reviewer_name, action_type, notes)
+        VALUES (@user_id, @reviewer_name, @action_type, @notes)
+      `);
+
+    res.json({ 
+      message: 'Case approved and user provisioned successfully',
+      provisioning: provisionResult
+    });
+
+  } catch (err) {
+    console.error('Approve case error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

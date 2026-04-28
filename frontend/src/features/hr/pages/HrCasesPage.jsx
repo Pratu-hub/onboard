@@ -140,19 +140,36 @@ const HrCasesPage = () => {
 
   const handleApproveAll = async () => {
     if (!selectedCase) return;
+    
+    // First, ensure all documents are verified locally/in state
     const pendingDocs = selectedCase.documents.filter(d => ['pending', 'uploaded', 'ai_processing', 'flagged'].includes(d.status));
-    if (pendingDocs.length === 0) return alert('All documents are already verified.');
-    if (!confirm(`Approve all ${pendingDocs.length} pending documents for ${selectedCase.user_name}?`)) return;
+    
+    if (pendingDocs.length > 0) {
+      if (!confirm(`Verify all ${pendingDocs.length} pending documents for ${selectedCase.user_name} and trigger final provisioning?`)) return;
+      try {
+        await Promise.all(pendingDocs.map(d => api(`/documents/${d.id}/status`, { method: 'PATCH', body: { status: 'verified' } })));
+        const docIds = pendingDocs.map(d => d.id);
+        setDocuments(prev => prev.map(d => docIds.includes(d.id) ? { ...d, status: 'verified' } : d));
+        setSelectedCase(prev => ({
+          ...prev,
+          documents: prev.documents.map(d => docIds.includes(d.id) ? { ...d, status: 'verified' } : d)
+        }));
+      } catch (err) { 
+        alert('Failed to verify some documents.'); 
+        return;
+      }
+    } else {
+      if (!confirm(`Trigger final provisioning for ${selectedCase.user_name}?`)) return;
+    }
 
+    // Now trigger the final Case Approval / Provisioning Pipeline
     try {
-      await Promise.all(pendingDocs.map(d => api(`/documents/${d.id}/status`, { method: 'PATCH', body: { status: 'verified' } })));
-      const docIds = pendingDocs.map(d => d.id);
-      setDocuments(prev => prev.map(d => docIds.includes(d.id) ? { ...d, status: 'verified' } : d));
-      setSelectedCase(prev => ({
-        ...prev,
-        documents: prev.documents.map(d => docIds.includes(d.id) ? { ...d, status: 'verified' } : d)
-      }));
-    } catch (err) { alert('Failed to approve some documents.'); fetchDocuments(); }
+      const response = await api(`/onboarding/approve-case/${selectedCase.user_id}`, { method: 'POST' });
+      alert(response.message || 'Case approved and provisioning started!');
+      fetchDocuments(); // Refresh list to show updated status
+    } catch (err) {
+      alert('Provisioning trigger failed: ' + err.message);
+    }
   };
 
   if (activeView === 'DETAIL' && selectedCase) {
