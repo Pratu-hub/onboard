@@ -46,10 +46,11 @@ jobs:
         with:
           name: node-app
       
-      - name: Login to Azure
+      - name: Login to Azure (Main Account)
         uses: azure/login@v2
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          creds: ${{ secrets.AZURE_CREDENTIALS_MAIN }}
+
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
