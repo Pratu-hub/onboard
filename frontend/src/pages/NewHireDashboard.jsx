@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api';
 
@@ -42,9 +43,25 @@ const NewHireDashboard = () => {
     const [aiModalDoc, setAiModalDoc] = useState(null); // Document to show in AI analysis modal
     const fileInputRef = useRef(null);
 
+    const navigate = useNavigate();
+
     useEffect(() => {
-        fetchDocuments();
+        checkStatusAndFetch();
     }, []);
+
+    const checkStatusAndFetch = async () => {
+        try {
+            const statusData = await api('/onboarding/my-status');
+            if (statusData.onboardingComplete) {
+                navigate('/dashboard/welcome-hub', { replace: true });
+                return;
+            }
+        } catch (error) {
+            console.error('Error checking onboarding status:', error);
+        }
+        
+        await fetchDocuments();
+    };
 
     // Auto-poll when documents are being processed by AI
     useEffect(() => {

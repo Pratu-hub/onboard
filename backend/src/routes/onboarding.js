@@ -6,6 +6,51 @@ const { requireRole } = require('../middleware/rbac');
 const { provisionEntraUser } = require('../utils/entraProvisioner');
 
 /**
+ * GET /api/onboarding/my-status
+ * Returns whether the current user's onboarding is complete,
+ * plus IT provisioning details for the Welcome Hub.
+ */
+router.get('/my-status', authenticate, async (req, res) => {
+  try {
+    const pool = await getPool();
+
+    // Check onboarding progress status
+    const progressResult = await pool.request()
+      .input('user_id', sql.Int, req.user.id)
+      .query(`
+        SELECT status, completed_at 
+        FROM onboarding_progress 
+        WHERE user_id = @user_id
+      `);
+
+    const progress = progressResult.recordset[0];
+    const onboardingComplete = progress?.status === 'completed';
+
+    // Mock IT provisioning checklist (in production, this would query real systems)
+    const provisioning = onboardingComplete ? {
+      items: [
+        { id: 'email', label: 'Company Email', status: 'done', detail: `${req.user.name?.toLowerCase().replace(/\s+/g, '.')}@onboardiq.com` },
+        { id: 'slack', label: 'Slack Workspace', status: 'done', detail: 'Added to #general, #engineering' },
+        { id: 'jira', label: 'Jira Project Access', status: 'done', detail: 'Assigned to ONBOARD project' },
+        { id: 'laptop', label: 'Laptop Shipment', status: 'in_progress', detail: 'MacBook Pro 14" — Ships in 2 days' },
+        { id: 'vpn', label: 'VPN Configuration', status: 'pending', detail: 'Will be set up on Day 1' },
+        { id: 'github', label: 'GitHub Organization', status: 'done', detail: 'Invited to onboardiq-dev org' },
+      ]
+    } : null;
+
+    res.json({
+      onboardingComplete,
+      completedAt: progress?.completed_at || null,
+      provisioning
+    });
+
+  } catch (err) {
+    console.error('Get my-status error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
  * GET /api/onboarding/progress
  * Returns the onboarding progress for the current user.
  * HR roles can optionally pass ?user_id= to view another user's progress.

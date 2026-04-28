@@ -5,6 +5,7 @@ import DashboardLayout from './components/DashboardLayout';
 
 import Login from './pages/Login';
 import NewHireDashboard from './pages/NewHireDashboard';
+import EmployeeHub from './pages/EmployeeHub';
 import HrDashboardLayout from './features/hr/HrDashboardLayout';
 import HrCasesPage from './features/hr/pages/HrCasesPage';
 import HrAnalyticsPage from './features/hr/pages/HrAnalyticsPage';
@@ -74,6 +75,12 @@ const Router = () => {
         <Route path="/dashboard/status-tracker" element={
           <ProtectedRoute allowedRoles={['NEW_HIRE', 'HR', 'IT_ADMIN']}>
             <DashboardLayout><StatusTracker /></DashboardLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/dashboard/welcome-hub" element={
+          <ProtectedRoute allowedRoles={['NEW_HIRE']}>
+            <DashboardLayout><EmployeeHub /></DashboardLayout>
           </ProtectedRoute>
         } />
 
