@@ -30,8 +30,10 @@ app.use(cors({
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
-    // Allow localhost, exact matches from allowedOrigins, or any azurestaticapps.net subdomain
-    if (allowedOrigins.indexOf(origin) !== -1 || origin.endsWith('.azurestaticapps.net')) {
+    // Allow localhost, exact matches, or any Azure hosted subdomain (SWA or ACA)
+    if (allowedOrigins.indexOf(origin) !== -1 || 
+        origin.endsWith('.azurestaticapps.net') || 
+        origin.endsWith('.azurecontainerapps.io')) {
       return callback(null, true);
     }
     
