@@ -1,0 +1,19 @@
+name: OWASP ZAP DAST Scan
+
+on:
+  workflow_dispatch:
+  # Can be triggered manually after deployment to staging/production
+
+jobs:
+  zap_scan:
+    runs-on: ubuntu-latest
+    name: Scan frontend app
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: ZAP Scan
+        uses: zaproxy/action-baseline@v0.12.0
+        with:
+          target: 'https://onboardiq-frontend.ashysand-f85aeb04.eastasia.azurecontainerapps.io'
+          fail_action: false

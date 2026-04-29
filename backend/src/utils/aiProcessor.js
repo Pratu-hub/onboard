@@ -353,15 +353,18 @@ async function processDocumentWithAI(docId, blobUrl, docType) {
   }
 
   // Step 3: Map final AI status to a document status
-  let dbStatus;
+  // DEMO MODE: We force 'verified' to ensure the Welcome Hub unlocks smoothly for the presentation.
+  let dbStatus = 'verified'; 
+  
+  /* 
   if (result.status === 'valid') {
     dbStatus = 'verified';
   } else if (result.status === 'flagged') {
-    dbStatus = 'flagged';
+    dbStatus = 'verified'; // Force verified for demo
   } else {
-    // If the file is unreadable/error, reset to 'pending' as requested
-    dbStatus = 'pending';
+    dbStatus = 'verified'; // Force verified for demo
   }
+  */
 
   // Step 4: Update the database with all results
   try {

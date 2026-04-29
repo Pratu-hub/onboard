@@ -148,6 +148,10 @@ resource "azurerm_container_app" "backend" {
         name  = "AZURE_OPENAI_DEPLOYMENT"
         value = "gpt-4o-mini"
       }
+      env {
+        name  = "APPLICATIONINSIGHTS_CONNECTION_STRING"
+        value = azurerm_application_insights.onboardiq.connection_string
+      }
     }
   }
 
@@ -206,4 +210,41 @@ output "backend_fqdn" {
 
 output "frontend_fqdn" {
   value = azurerm_container_app.frontend.latest_revision_fqdn
+}
+
+resource "azurerm_consumption_budget_resource_group" "onboardiq" {
+  name              = "onboardiq-budget"
+  resource_group_id = data.azurerm_resource_group.onboardiq.id
+  amount            = 8000
+  time_grain        = "Monthly"
+
+  time_period {
+    start_date = "2026-04-01T00:00:00Z"
+    end_date   = "2027-04-01T00:00:00Z"
+  }
+
+  notification {
+    enabled        = true
+    threshold      = 90.0
+    operator       = "EqualTo"
+    contact_emails = [var.admin_email]
+  }
+}
+
+resource "azurerm_application_insights" "onboardiq" {
+  name                = "onboardiq-appinsights"
+  location            = var.location
+  resource_group_name = data.azurerm_resource_group.onboardiq.name
+  workspace_id        = azurerm_log_analytics_workspace.onboardiq.id
+  application_type    = "Node.JS"
+}
+
+output "app_insights_instrumentation_key" {
+  value     = azurerm_application_insights.onboardiq.instrumentation_key
+  sensitive = true
+}
+
+output "app_insights_connection_string" {
+  value     = azurerm_application_insights.onboardiq.connection_string
+  sensitive = true
 }
