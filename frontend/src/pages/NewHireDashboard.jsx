@@ -41,6 +41,7 @@ const NewHireDashboard = () => {
     const [uploadingDocType, setUploadingDocType] = useState(null);
     const [uploadProgress, setUploadProgress] = useState({}); // { [docType]: percentage }
     const [aiModalDoc, setAiModalDoc] = useState(null); // Document to show in AI analysis modal
+    const [onboardingStatus, setOnboardingStatus] = useState(null); // track current progress status
     const fileInputRef = useRef(null);
 
     const navigate = useNavigate();
@@ -51,10 +52,15 @@ const NewHireDashboard = () => {
 
     const checkStatusAndFetch = async () => {
         try {
-            const statusData = await api('/onboarding/my-status');
-            if (statusData.onboardingComplete) {
-                navigate('/dashboard/welcome-hub', { replace: true });
-                return;
+            // First check the progress status
+            const statusData = await api('/onboarding/progress');
+            if (statusData.progress) {
+                const currentStatus = statusData.progress.status;
+                setOnboardingStatus(currentStatus);
+                if (currentStatus === 'approved' || currentStatus === 'provisioned') {
+                    navigate('/dashboard/welcome-hub', { replace: true });
+                    return;
+                }
             }
         } catch (error) {
             console.error('Error checking onboarding status:', error);
@@ -258,11 +264,63 @@ const NewHireDashboard = () => {
                     {/* Main Header Card */}
                     <div className="lg:col-span-3 glass-panel p-6 rounded-2xl flex flex-col md:flex-row items-center gap-8">
                         <div className="flex-1 space-y-4 w-full">
-                            <div className="flex justify-between items-end">
+                            <div className="flex justify-between items-center">
                                 <div>
                                     <h1 className="text-3xl font-extrabold font-headline tracking-tight text-white">Document Upload Dashboard</h1>
                                     <p className="text-sm text-white/60 mt-1">Onboarding Portal <span className="material-symbols-outlined text-[10px] align-middle mx-1">chevron_right</span> Candidate: <span className="font-bold text-white">{user?.name || 'Jordan Miller'}</span></p>
                                 </div>
+                                {onboardingStatus === 'completed' ? (
+                                    <div className="flex flex-col items-end gap-2">
+                                        <button 
+                                            onClick={() => navigate('/dashboard/welcome-hub')}
+                                            className="px-6 py-2.5 bg-success text-white text-xs font-bold uppercase tracking-widest rounded-xl shadow-[0_0_20px_rgba(7,202,107,0.4)] hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+                                        >
+                                            Move to Main Page
+                                            <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                                        </button>
+                                        <p className="text-[10px] text-success font-bold uppercase tracking-widest flex items-center gap-1">
+                                            <span className="material-symbols-outlined text-[12px]">verified</span> Verified Successfully
+                                        </p>
+                                    </div>
+                                ) : onboardingStatus === 'under_review' ? (
+                                    <div className="flex flex-col items-end gap-2">
+                                        <div className="px-6 py-2.5 glass-surface text-info text-xs font-bold uppercase tracking-widest rounded-xl border border-info/30 flex items-center gap-2">
+                                            <span className="material-symbols-outlined text-sm animate-spin">hourglass_top</span>
+                                            Waiting for HR Review
+                                        </div>
+                                        <p className="text-[10px] text-info font-bold uppercase tracking-widest flex items-center gap-1">
+                                            <span className="material-symbols-outlined text-[12px]">check_circle</span> Submitted Successfully
+                                        </p>
+                                    </div>
+                                ) : verifiedCount === 5 ? (
+                                    <div className="flex flex-col items-end gap-2">
+                                        <button 
+                                            onClick={async () => {
+                                                try {
+                                                    await api('/onboarding/progress', {
+                                                        method: 'PATCH',
+                                                        body: JSON.stringify({ status: 'under_review' })
+                                                    });
+                                                    setOnboardingStatus('under_review');
+                                                } catch (err) {
+                                                    console.error('Submission failed:', err);
+                                                }
+                                            }}
+                                            className="px-6 py-2.5 bg-primary text-white text-xs font-bold uppercase tracking-widest rounded-xl shadow-[0_0_20px_rgba(24,86,255,0.4)] hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+                                        >
+                                            <span className="material-symbols-outlined text-sm">send</span>
+                                            Submit for HR Approval
+                                        </button>
+                                        <p className="text-[10px] text-primary font-bold uppercase tracking-widest animate-pulse">All requirements met</p>
+                                    </div>
+                                ) : (
+                                    <div className="text-right">
+                                        <p className="text-sm font-bold text-white/40 uppercase tracking-widest">{verifiedCount}/5 Verified</p>
+                                        <div className="w-32 bg-white/10 h-1 rounded-full mt-2 overflow-hidden">
+                                            <div className="h-full bg-primary transition-all duration-500" style={{ width: `${progressPercent}%` }}></div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

@@ -79,3 +79,8 @@ variable "openai_key" {
   sensitive   = true
 }
 
+variable "admin_email" {
+  description = "Admin email for budget alerts"
+  type        = string
+  default     = "admin@example.com"
+}

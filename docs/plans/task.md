@@ -1,10 +1,9 @@
-# Glassmorphism Refactor — Task Tracker
+# Review 3 Implementation — Task Tracker
 
 | Task | Description | Status |
 |------|-------------|--------|
-| 1 | Foundation and Tokens (`index.css`) | not_started |
-| 2 | Refactor Login Component | not_started |
-| 3 | Refactor Layouts | not_started |
-| 4 | Refactor New Hire Dashboards | not_started |
-| 5 | Refactor HR Features | not_started |
-| 6 | Refactor Reviewer Components | not_started |
+| 1 | Security Scanning — CodeQL (SAST) | done |
+| 2 | Security Scanning — OWASP ZAP (DAST) | done |
+| 3 | Cost Management Alerts (Terraform) | done |
+| 4 | Application Insights (Observability) | done |
+| 5 | Welcome Hub Smart Routing | done |
