@@ -39,7 +39,7 @@ jobs:
       - name: Build and Push Frontend
         run: |
           docker build \
-            --build-arg VITE_API_BASE_URL=https://onboardiq-backend.ashysand-f85aeb04.eastasia.azurecontainerapps.io \
+            --build-arg VITE_API_BASE_URL=https://onboardiq-backend.lemonsky-df8c16fa.eastasia.azurecontainerapps.io \
             -t ${{ steps.get-acr.outputs.registry }}/onboard-frontend:latest ./frontend
           docker push ${{ steps.get-acr.outputs.registry }}/onboard-frontend:latest
 
