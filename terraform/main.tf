@@ -248,3 +248,64 @@ output "app_insights_connection_string" {
   value     = azurerm_application_insights.onboardiq.connection_string
   sensitive = true
 }
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "onboardiq" {
+  name                        = "okv-${substr(var.subscription_id, 0, 8)}"
+  location                    = var.location
+  resource_group_name         = data.azurerm_resource_group.onboardiq.name
+  enabled_for_disk_encryption = true
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  soft_delete_retention_days  = 7
+  purge_protection_enabled    = false
+
+  sku_name = "standard"
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    secret_permissions = [
+      "Get", "List", "Set", "Delete", "Purge", "Recover"
+    ]
+  }
+}
+
+resource "azurerm_key_vault_secret" "db_password" {
+  name         = "db-password"
+  value        = var.db_password
+  key_vault_id = azurerm_key_vault.onboardiq.id
+}
+
+resource "azurerm_key_vault_secret" "doc_intelligence_key" {
+  name         = "doc-intelligence-key"
+  value        = var.doc_intelligence_key
+  key_vault_id = azurerm_key_vault.onboardiq.id
+}
+
+resource "azurerm_key_vault_secret" "openai_key" {
+  name         = "openai-key"
+  value        = var.openai_key
+  key_vault_id = azurerm_key_vault.onboardiq.id
+}
+
+resource "azurerm_key_vault_secret" "firebase_private_key" {
+  name         = "firebase-private-key"
+  value        = var.firebase_private_key
+  key_vault_id = azurerm_key_vault.onboardiq.id
+}
+
+resource "azurerm_key_vault_secret" "registry_password" {
+  name         = "registry-password"
+  value        = var.registry_password
+  key_vault_id = azurerm_key_vault.onboardiq.id
+}
+
+resource "azurerm_key_vault_secret" "jwt_secret" {
+  name         = "jwt-secret"
+  value        = var.jwt_secret
+  key_vault_id = azurerm_key_vault.onboardiq.id
+}
+
+
